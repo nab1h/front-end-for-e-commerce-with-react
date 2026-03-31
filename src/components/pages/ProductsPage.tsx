@@ -4,6 +4,7 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import SkeletonProducts from "../SkeletonProducts";
 import type { IProduct, IProductsResponse } from "@/interfaces/interfaces";
+import { Link } from "react-router-dom";
 const ProductsPage = () => {
     
   const API_URL = import.meta.env.VITE_SERVER_URL;
@@ -11,13 +12,10 @@ const ProductsPage = () => {
 
     const getProductsList = async () : Promise<IProduct[]>=> {
         const { data } = await axios.get<IProductsResponse>(
-          `${import.meta.env.VITE_SERVER_URL}/api/products`,
+          `${import.meta.env.VITE_SERVER_URL}/api/products`
         );
         return data.products;
   }
-  
-
-
     const { isLoading, data } = useQuery({
       queryKey: ["products"],
       queryFn: getProductsList,
@@ -36,19 +34,26 @@ const ProductsPage = () => {
       );
     return (
       <>
-        <Grid templateColumns="repeat(auto-fill, minmax(300px, 1fr))" gap="6" mx={"auto"} >
+        <Grid
+          templateColumns="repeat(auto-fill, minmax(300px, 1fr))"
+          gap="6"
+          mx={"auto"}
+        >
           {data?.map((product) => (
-              <ProductCard
-                key={product.id}
-                name={product.name}
-                img={
-                  product.images?.[0]
-                    ? `${API_URL}/storage/${product.images[0].image_path}`
-                    : "https://via.placeholder.com/300"
-                }
-                desc={product.description}
-                price={product.price}
-              />
+            <ProductCard
+              id={product.id}
+              as={Link}
+              to={`/product/${product.id}`}
+              key={product.id}
+              name={product.name}
+              img={
+                product.images?.[0]
+                  ? `${API_URL}/storage/${product.images[0].image_path}`
+                  : "https://via.placeholder.com/300"
+              }
+              desc={product.description}
+              price={product.price}
+            />
           ))}
         </Grid>
       </>

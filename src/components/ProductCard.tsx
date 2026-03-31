@@ -1,15 +1,19 @@
-import { Button, Card, Image, Text } from "@chakra-ui/react";
-import type { FC } from "react";
+import { Box, Button, Card, Image, Text } from "@chakra-ui/react";
+import type { ElementType, FC } from "react";
 
 interface IProps{
+  id: number;
   img: string;
   name: string;
   desc: string;
   price: string;
+  as?: ElementType;
+  to?: string;
 }
-const ProductCard: FC<IProps> = ({ img, name, desc, price }) => {
+const ProductCard: FC<IProps> = ({ img, name, desc, price ,as = Box ,to }) => {
+  const Component = as;
   return (
-    <Card.Root overflow="hidden" w='full'>
+    <Card.Root overflow="hidden" w='full' as={Component} {...to? {to} : {}}>
       <Image
         src={img}
         alt={name}
