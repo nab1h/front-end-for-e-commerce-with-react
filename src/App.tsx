@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar";
 import { Route, Routes } from "react-router-dom";
 import ProductPage from "./components/pages/ProductPage";
 import { Container } from '@chakra-ui/react';
+import AuthForms from './components/AuthForms';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/" element={<ProductsPage />} />
           <Route path="/Product/:id" element={<ProductPage />} />
         </Routes>
+        <AuthForms />
       </Container>
     </>
   );
