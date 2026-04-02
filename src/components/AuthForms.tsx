@@ -12,14 +12,14 @@ import {
 import { useColorModeValue } from "./ui/color-mode";
 import { useState } from "react";
 import { FaGoogle, FaFacebook, FaApple, FaCheck, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+
+// Typed hooks
+const useAppDispatch = () => useDispatch<AppDispatch>();
+import type { RootState, AppDispatch } from "@/app/store";
+import { setField, loginUser, clearError, registerUser, type IFormRegister } from "@/features/auth/authSlice";
 
 interface IFormLogin {
-  email: string;
-  password: string;
-}
-interface IFormRegister {
-  firstName: string;
-  lastName: string;
   email: string;
   password: string;
 }
@@ -28,68 +28,91 @@ const AuthForms = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [rememberMe, setRememberMe] = useState(true);
   const [agreeTerms, setAgreeTerms] = useState(false);
-  const [user, setUser] = useState<IFormLogin>({
-    email: "",
-    password: ""
-  });
+  const [success, setSuccess] = useState("");
   const [userRegister, setUserRegister] = useState<IFormRegister>({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const dispatch = useAppDispatch();
+  const user = useSelector((state: RootState) => state.auth.user);
+  const { isLoading, error } = useSelector(
+    (state: RootState) => state.auth
+  );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setUser({ ...user, [name]: value });
-    setError("");
+    dispatch(
+      setField({
+        name,
+        value,
+      }),
+    );
+    if (error) {
+      dispatch(clearError());
+    }
     setSuccess("");
   };
 
   const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setUserRegister({ ...userRegister, [name]: value });
-
   };
-  
+
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setConfirmPassword(e.target.value);
+  };
 
 
 
 // --------sing in handler------
   const submitHandler = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      if (user.email && user.password) {
-        if (user.email.includes("error")) {
-          setError("Invalid email or password");
-          setSuccess("");
-        } else {
-          setError("");
-          setSuccess("Login successful!");
-        }
-      } else {
-        setError("Please fill in all fields");
-        setSuccess("");
-      }
-      setIsLoading(false);
-    }, 1500);
-    console.log(user);
+    if (!user.email || !user.password) {
+      return;
+    }
+
+    dispatch(loginUser({ email: user.email, password: user.password }))
+      .unwrap()
+      .then(() => {
+        setSuccess("Login successful!");
+        // Redirect or handle successful login
+        // window.location.href = "/profile";
+      })
+      .catch((err) => {
+        console.error("Login failed:", err);
+      });
   };
 
 
 
   // --------register handler -------
-  
+
   const submitRegisterHandler = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-     console.log(userRegister);
-    
+
+    if (!userRegister.firstName || !userRegister.lastName || !userRegister.email || !userRegister.password || !confirmPassword) {
+      return;
+    }
+
+    if (userRegister.password !== confirmPassword) {
+      dispatch(clearError());
+      return;
+    }
+
+    dispatch(registerUser({ ...userRegister, password_confirmation: confirmPassword }))
+      .unwrap()
+      .then(() => {
+        setSuccess("Registration successful!");
+        setIsLogin(true);
+      })
+      .catch((err) => {
+        console.error("Registration failed:", err);
+      });
   }
   const bgColor = useColorModeValue("white", "gray.800");
   const textColor = useColorModeValue("gray.800", "white");
@@ -183,7 +206,7 @@ const AuthForms = () => {
               borderRadius="md"
               onClick={() => {
                 setIsLogin(true);
-                setError("");
+                dispatch(clearError());
                 setSuccess("");
               }}
               fontWeight="600"
@@ -199,7 +222,7 @@ const AuthForms = () => {
               borderRadius="md"
               onClick={() => {
                 setIsLogin(false);
-                setError("");
+                dispatch(clearError());
                 setSuccess("");
               }}
               fontWeight="600"
@@ -217,7 +240,6 @@ const AuthForms = () => {
               grayText={grayText}
               borderColor={borderColor}
               inputBg={inputBg}
-              hoverBg={hoverBg}
               rememberMe={rememberMe}
               setRememberMe={setRememberMe}
               user={user}
@@ -234,12 +256,13 @@ const AuthForms = () => {
               grayText={grayText}
               borderColor={borderColor}
               inputBg={inputBg}
-              hoverBg={hoverBg}
               agreeTerms={agreeTerms}
               userRegister={userRegister}
+              confirmPassword={confirmPassword}
               setAgreeTerms={setAgreeTerms}
               submitRegisterHandler={submitRegisterHandler}
               handleRegisterChange={handleRegisterChange}
+              handleConfirmPasswordChange={handleConfirmPasswordChange}
             />
           )}
 
@@ -325,7 +348,6 @@ const LoginForm = ({
   grayText,
   borderColor,
   inputBg,
-  hoverBg,
   rememberMe,
   setRememberMe,
   user,
@@ -340,14 +362,13 @@ const LoginForm = ({
   grayText: string;
   borderColor: string;
   inputBg: string;
-  hoverBg: string;
   rememberMe: boolean;
   setRememberMe: React.Dispatch<React.SetStateAction<boolean>>;
   user: IFormLogin;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   submitHandler: React.FormEventHandler<HTMLFormElement>;
   isLoading: boolean;
-  error: string;
+  error: string | null;
   getFocusStyles: (isError: boolean) => { borderColor: string; boxShadow: string };
   getHoverStyles: (isError: boolean) => { borderColor: string };
 }) => (
@@ -390,7 +411,6 @@ const LoginForm = ({
           grayText={grayText}
           borderColor={borderColor}
           inputBg={inputBg}
-          hoverBg={hoverBg}
           error={error}
         />
 
@@ -457,23 +477,25 @@ const RegisterForm = ({
   grayText,
   borderColor,
   inputBg,
-  hoverBg,
   agreeTerms,
   setAgreeTerms,
   submitRegisterHandler,
   handleRegisterChange,
   userRegister,
+  confirmPassword,
+  handleConfirmPasswordChange,
 }: {
   textColor: string;
   grayText: string;
   borderColor: string;
   inputBg: string;
-  hoverBg: string;
   agreeTerms: boolean;
   userRegister: IFormRegister;
+  confirmPassword: string;
   setAgreeTerms: (value: boolean) => void;
   submitRegisterHandler: React.FormEventHandler<HTMLFormElement>;
   handleRegisterChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleConfirmPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) => (
   <form onSubmit={submitRegisterHandler}>
     <VStack gap={4}>
@@ -573,17 +595,18 @@ const RegisterForm = ({
         grayText={grayText}
         borderColor={borderColor}
         inputBg={inputBg}
-        hoverBg={hoverBg}
       />
 
       <PasswordInput
         label="Confirm Password"
+        name="password_confirmation"
+        value={confirmPassword}
+        onChange={handleConfirmPasswordChange}
         placeholder="Confirm your password"
         textColor={textColor}
         grayText={grayText}
         borderColor={borderColor}
         inputBg={inputBg}
-        hoverBg={hoverBg}
       />
 
       <HStack
@@ -659,11 +682,10 @@ const PasswordInput = ({
   grayText: string;
   borderColor: string;
   inputBg: string;
-  hoverBg: string;
   name?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  error?: string;
+  error?: string | null;
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
