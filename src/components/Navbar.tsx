@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/*eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Box,
   Flex,
@@ -9,17 +9,24 @@ import {
   VStack,
   useBreakpointValue,
   Image,
-  Heading
+  Heading,
+  Menu,
+  Portal
 } from "@chakra-ui/react";
 import { useColorMode, useColorModeValue } from "./ui/color-mode";
 import { Link as RouterLink } from "react-router-dom";
 import { useState } from "react";
 import { FaMoon, FaSun, FaBars, FaTimes, FaShoppingCart } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/app/store";
+import { useDispatch } from "react-redux";
+import { logout } from "@/features/auth/authSlice";
+
+
 
 const Navbar = () => {
   const { colorMode, toggleColorMode } = useColorMode();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
   const userImage = "https://api.dicebear.com/7.x/avataaars/svg?seed=user";
 
   const isMobile = useBreakpointValue({ base: true, md: false });
@@ -27,12 +34,25 @@ const Navbar = () => {
   const textColor = useColorModeValue("gray.800", "white");
   const hoverBg = useColorModeValue("gray.100", "gray.700");
   const menuBg = useColorModeValue("white", "gray.900");
-  const shadowColor = useColorModeValue("rgba(0, 0, 0, 0.1)", "rgba(0, 0, 0, 0.3)");
+  const dispatch = useDispatch<AppDispatch>();
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated,
+  );
 
+  const handleLogout = () => {
+    dispatch(logout());
+  }
   return (
-    <Box px={{ base: 4, md: 8 }} py={4} boxShadow="sm" bg={bgColor} position="sticky" top="0" zIndex="1000">
+    <Box
+      px={{ base: 4, md: 8 }}
+      py={4}
+      boxShadow="sm"
+      bg={bgColor}
+      position="sticky"
+      top="0"
+      zIndex="1000"
+    >
       <Flex justify="space-between" align="center" maxW="1400px" mx="auto">
-
         {/* Logo - Left */}
         <RouterLink to="/">
           <Heading
@@ -45,7 +65,7 @@ const Navbar = () => {
             transition="color 0.2s"
             fontFamily="'Poppins', sans-serif"
           >
-           MyStore
+            MyStore
           </Heading>
         </RouterLink>
 
@@ -145,19 +165,56 @@ const Navbar = () => {
           </RouterLink>
 
           {/* User Button */}
-          {isLoggedIn ? (
-            <RouterLink to="/profile">
-              <Box
-                w="40px"
-                h="40px"
-                borderRadius="full"
-                overflow="hidden"
-                cursor="pointer"
-                _hover={{ ring: "2px", ringColor: "blue.500", ringOffset: "2px" }}
-              >
-                <Image src={userImage} alt="User" w="full" h="full" objectFit="cover" />
-              </Box>
-            </RouterLink>
+          {isAuthenticated ? (
+            <Menu.Root>
+              <Menu.Trigger asChild>
+                <Box
+                  w="40px"
+                  h="40px"
+                  borderRadius="full"
+                  overflow="hidden"
+                  cursor="pointer"
+                  _hover={{
+                    ring: "2px",
+                    ringColor: "blue.500",
+                    ringOffset: "2px",
+                  }}
+                >
+                  <Image
+                    src={userImage}
+                    alt="User"
+                    w="full"
+                    h="full"
+                    objectFit="cover"
+                  />
+                </Box>
+              </Menu.Trigger>
+              <Portal>
+                <Menu.Positioner>
+                  <Menu.Content>
+                    <Menu.Item value="profile">
+                      <RouterLink to="/profile">Profile</RouterLink>
+                    </Menu.Item>
+                    <Menu.Item value="setting">
+                      <RouterLink to="/setting">settings</RouterLink>
+                    </Menu.Item>
+                    <Menu.Item value="orders">
+                      <RouterLink to="/orders">
+                      My Orders
+                      </RouterLink>
+                    </Menu.Item>
+                    <Menu.Item
+                      value="delete"
+                      color="fg.error"
+                      _hover={{ bg: "bg.error", color: "fg.error" }}
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </Menu.Item>
+                  </Menu.Content>
+                </Menu.Positioner>
+              </Portal>
+            </Menu.Root>
           ) : (
             <RouterLink to="/login">
               <Button
@@ -202,7 +259,12 @@ const Navbar = () => {
           // eslint-disable-next-line react-hooks/rules-of-hooks
           borderColor={useColorModeValue("gray.200", "gray.700")}
         >
-          <Text color={textColor} fontWeight="600" mb={3} fontFamily="'Poppins', sans-serif">
+          <Text
+            color={textColor}
+            fontWeight="600"
+            mb={3}
+            fontFamily="'Poppins', sans-serif"
+          >
             Menu
           </Text>
           <VStack gap={2} align="stretch">
@@ -258,7 +320,7 @@ const Navbar = () => {
                 Contact
               </Button>
             </RouterLink>
-            {isLoggedIn ? (
+            {isAuthenticated ? (
               <>
                 <RouterLink to="/profile" onClick={() => setIsMenuOpen(false)}>
                   <Button
