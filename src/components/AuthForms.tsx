@@ -11,17 +11,40 @@ import {
 } from "@chakra-ui/react";
 import { useColorModeValue } from "./ui/color-mode";
 import { useState } from "react";
-import { FaGoogle, FaFacebook, FaApple, FaCheck, FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  FaGoogle,
+  FaFacebook,
+  FaApple,
+  FaCheck,
+  FaEye,
+  FaEyeSlash,
+} from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 
 // Typed hooks
 const useAppDispatch = () => useDispatch<AppDispatch>();
 import type { RootState, AppDispatch } from "@/app/store";
-import { setField, loginUser, clearError, registerUser, type IFormRegister } from "@/features/auth/authSlice";
+import {
+  setField,
+  loginUser,
+  clearError,
+  registerUser,
+  type IFormRegister,
+} from "@/features/auth/authSlice";
 
 interface IFormLogin {
   email: string;
   password: string;
+}
+
+// Interface for validation errors
+interface ValidationErrors {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  terms?: string;
 }
 
 const AuthForms = () => {
@@ -29,6 +52,10 @@ const AuthForms = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [success, setSuccess] = useState("");
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {},
+  );
+
   const [userRegister, setUserRegister] = useState<IFormRegister>({
     firstName: "",
     lastName: "",
@@ -39,9 +66,7 @@ const AuthForms = () => {
 
   const dispatch = useAppDispatch();
   const user = useSelector((state: RootState) => state.auth.user);
-  const { isLoading, error } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const { isLoading, error } = useSelector((state: RootState) => state.auth);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -60,15 +85,59 @@ const AuthForms = () => {
   const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setUserRegister({ ...userRegister, [name]: value });
+    // Clear validation error when user types
+    if (validationErrors[name as keyof ValidationErrors]) {
+      setValidationErrors({ ...validationErrors, [name]: undefined });
+    }
   };
 
-  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleConfirmPasswordChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     setConfirmPassword(e.target.value);
+    // Clear confirm password error
+    if (validationErrors.confirmPassword) {
+      setValidationErrors({ ...validationErrors, confirmPassword: undefined });
+    }
   };
 
+  // -------- Validation Logic -------
+  const validateRegisterForm = (): boolean => {
+    const errors: ValidationErrors = {};
 
+    if (!userRegister.firstName.trim()) {
+      errors.firstName = "First name is required";
+    }
+    if (!userRegister.lastName.trim()) {
+      errors.lastName = "Last name is required";
+    }
+    if (!userRegister.email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(userRegister.email)) {
+      errors.email = "Email address is invalid";
+    }
 
-// --------sing in handler------
+    if (!userRegister.password) {
+      errors.password = "Password is required";
+    } else if (userRegister.password.length < 8) {
+      errors.password = "Password must be at least 8 characters";
+    }
+
+    if (!confirmPassword) {
+      errors.confirmPassword = "Please confirm your password";
+    } else if (userRegister.password !== confirmPassword) {
+      errors.confirmPassword = "Passwords do not match";
+    }
+
+    if (!agreeTerms) {
+      errors.terms = "You must agree to the terms";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // --------sing in handler------
   const submitHandler = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -80,40 +149,43 @@ const AuthForms = () => {
       .unwrap()
       .then(() => {
         setSuccess("Login successful!");
-        // Redirect or handle successful login
-        // window.location.href = "/profile";
       })
       .catch((err) => {
         console.error("Login failed:", err);
       });
   };
 
-
-
   // --------register handler -------
-
   const submitRegisterHandler = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!userRegister.firstName || !userRegister.lastName || !userRegister.email || !userRegister.password || !confirmPassword) {
+    if (!validateRegisterForm()) {
       return;
     }
 
-    if (userRegister.password !== confirmPassword) {
-      dispatch(clearError());
-      return;
-    }
-
-    dispatch(registerUser({ ...userRegister, password_confirmation: confirmPassword }))
+    dispatch(
+      registerUser({ ...userRegister, password_confirmation: confirmPassword }),
+    )
       .unwrap()
       .then(() => {
         setSuccess("Registration successful!");
         setIsLogin(true);
+        // Clear form on success? Optional.
+        setUserRegister({
+          firstName: "",
+          lastName: "",
+          email: "",
+          password: "",
+        });
+        setConfirmPassword("");
+        setAgreeTerms(false);
       })
       .catch((err) => {
         console.error("Registration failed:", err);
+        
       });
-  }
+  };
+
   const bgColor = useColorModeValue("white", "gray.800");
   const textColor = useColorModeValue("gray.800", "white");
   const grayText = useColorModeValue("gray.600", "gray.400");
@@ -121,14 +193,15 @@ const AuthForms = () => {
   const inputBg = useColorModeValue("white", "gray.750");
   const hoverBg = useColorModeValue("gray.50", "gray.700");
   const iconColor = useColorModeValue("gray.800", "gray.200");
+  const errorColor = "red.500";
 
   const getFocusStyles = (isError: boolean) => ({
-    borderColor: isError ? "red.500" : "blue.500",
-    boxShadow: isError ? "0 0 0 1px red.500" : "0 0 0 1px blue.500"
+    borderColor: isError ? errorColor : "blue.500",
+    boxShadow: isError ? `0 0 0 1px ${errorColor}` : "0 0 0 1px blue.500",
   });
 
   const getHoverStyles = (isError: boolean) => ({
-    borderColor: isError ? "red.500" : "blue.500"
+    borderColor: isError ? errorColor : "blue.500",
   });
 
   return (
@@ -208,6 +281,7 @@ const AuthForms = () => {
                 setIsLogin(true);
                 dispatch(clearError());
                 setSuccess("");
+                setValidationErrors({});
               }}
               fontWeight="600"
               _hover={{ bg: isLogin ? "blue.600" : hoverBg }}
@@ -224,6 +298,7 @@ const AuthForms = () => {
                 setIsLogin(false);
                 dispatch(clearError());
                 setSuccess("");
+                setValidationErrors({});
               }}
               fontWeight="600"
               _hover={{ bg: !isLogin ? "blue.600" : hoverBg }}
@@ -263,6 +338,10 @@ const AuthForms = () => {
               submitRegisterHandler={submitRegisterHandler}
               handleRegisterChange={handleRegisterChange}
               handleConfirmPasswordChange={handleConfirmPasswordChange}
+              isLoading={isLoading}
+              validationErrors={validationErrors}
+              getFocusStyles={getFocusStyles}
+              getHoverStyles={getHoverStyles}
             />
           )}
 
@@ -369,7 +448,10 @@ const LoginForm = ({
   submitHandler: React.FormEventHandler<HTMLFormElement>;
   isLoading: boolean;
   error: string | null;
-  getFocusStyles: (isError: boolean) => { borderColor: string; boxShadow: string };
+  getFocusStyles: (isError: boolean) => {
+    borderColor: string;
+    boxShadow: string;
+  };
   getHoverStyles: (isError: boolean) => { borderColor: string };
 }) => (
   <Box w="full">
@@ -411,7 +493,8 @@ const LoginForm = ({
           grayText={grayText}
           borderColor={borderColor}
           inputBg={inputBg}
-          error={error}
+          // Login form usually shows generic error at top, but we pass it down if needed
+          errorMessage={error ? " " : undefined}
         />
 
         <Flex justify="space-between" align="center" w="full">
@@ -438,7 +521,11 @@ const LoginForm = ({
                 </Box>
               )}
             </Box>
-            <Text fontSize="sm" color={grayText} fontFamily="'Poppins', sans-serif">
+            <Text
+              fontSize="sm"
+              color={grayText}
+              fontFamily="'Poppins', sans-serif"
+            >
               Remember me
             </Text>
           </HStack>
@@ -484,6 +571,10 @@ const RegisterForm = ({
   userRegister,
   confirmPassword,
   handleConfirmPasswordChange,
+  isLoading,
+  validationErrors,
+  getFocusStyles,
+  getHoverStyles,
 }: {
   textColor: string;
   grayText: string;
@@ -496,6 +587,13 @@ const RegisterForm = ({
   submitRegisterHandler: React.FormEventHandler<HTMLFormElement>;
   handleRegisterChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleConfirmPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isLoading: boolean;
+  validationErrors: ValidationErrors;
+  getFocusStyles: (isError: boolean) => {
+    borderColor: string;
+    boxShadow: string;
+  };
+  getHoverStyles: (isError: boolean) => { borderColor: string };
 }) => (
   <form onSubmit={submitRegisterHandler}>
     <VStack gap={4}>
@@ -517,16 +615,18 @@ const RegisterForm = ({
             type="text"
             placeholder="John"
             bg={inputBg}
-            borderColor={borderColor}
+            borderColor={validationErrors.firstName ? "red.500" : borderColor}
             color={textColor}
             _placeholder={{ color: grayText }}
-            _hover={{ borderColor: "blue.500" }}
-            _focus={{
-              borderColor: "blue.500",
-              boxShadow: "0 0 0 1px blue.500",
-            }}
+            _hover={getHoverStyles(!!validationErrors.firstName)}
+            _focus={getFocusStyles(!!validationErrors.firstName)}
             borderRadius="lg"
           />
+          {validationErrors.firstName && (
+            <Text color="red.500" fontSize="xs" mt={1}>
+              {validationErrors.firstName}
+            </Text>
+          )}
         </Box>
 
         <Box w="full">
@@ -546,16 +646,18 @@ const RegisterForm = ({
             type="text"
             placeholder="Doe"
             bg={inputBg}
-            borderColor={borderColor}
+            borderColor={validationErrors.lastName ? "red.500" : borderColor}
             color={textColor}
             _placeholder={{ color: grayText }}
-            _hover={{ borderColor: "blue.500" }}
-            _focus={{
-              borderColor: "blue.500",
-              boxShadow: "0 0 0 1px blue.500",
-            }}
+            _hover={getHoverStyles(!!validationErrors.lastName)}
+            _focus={getFocusStyles(!!validationErrors.lastName)}
             borderRadius="lg"
           />
+          {validationErrors.lastName && (
+            <Text color="red.500" fontSize="xs" mt={1}>
+              {validationErrors.lastName}
+            </Text>
+          )}
         </Box>
       </HStack>
 
@@ -576,13 +678,18 @@ const RegisterForm = ({
           type="email"
           placeholder="john@example.com"
           bg={inputBg}
-          borderColor={borderColor}
+          borderColor={validationErrors.email ? "red.500" : borderColor}
           color={textColor}
           _placeholder={{ color: grayText }}
-          _hover={{ borderColor: "blue.500" }}
-          _focus={{ borderColor: "blue.500", boxShadow: "0 0 0 1px blue.500" }}
+          _hover={getHoverStyles(!!validationErrors.email)}
+          _focus={getFocusStyles(!!validationErrors.email)}
           borderRadius="lg"
         />
+        {validationErrors.email && (
+          <Text color="red.500" fontSize="xs" mt={1}>
+            {validationErrors.email}
+          </Text>
+        )}
       </Box>
 
       <PasswordInput
@@ -595,6 +702,7 @@ const RegisterForm = ({
         grayText={grayText}
         borderColor={borderColor}
         inputBg={inputBg}
+        errorMessage={validationErrors.password}
       />
 
       <PasswordInput
@@ -607,20 +715,29 @@ const RegisterForm = ({
         grayText={grayText}
         borderColor={borderColor}
         inputBg={inputBg}
+        errorMessage={validationErrors.confirmPassword}
       />
 
       <HStack
         gap={2}
         cursor="pointer"
-        onClick={() => setAgreeTerms(!agreeTerms)}
+        onClick={() => {
+          setAgreeTerms(!agreeTerms);
+          if (!agreeTerms && validationErrors.terms) {
+            // Parent component handles clearing via state update if we had a handler,
+            // but here we rely on submit to clear or just visual feedback.
+            // Ideally, we'd clear the error here too.
+          }
+        }}
         align="flex-start"
+        w="full"
       >
         <Box
           w="5"
           h="5"
           borderRadius="md"
           borderWidth="1px"
-          borderColor={borderColor}
+          borderColor={validationErrors.terms ? "red.500" : borderColor}
           bg={agreeTerms ? "blue.500" : inputBg}
           display="flex"
           alignItems="center"
@@ -634,16 +751,27 @@ const RegisterForm = ({
             </Box>
           )}
         </Box>
-        <Text fontSize="sm" color={grayText} fontFamily="'Poppins', sans-serif">
-          I agree to{" "}
-          <Link color="blue.500" href="/terms">
-            Terms of Service
-          </Link>{" "}
-          and{" "}
-          <Link color="blue.500" href="/privacy">
-            Privacy Policy
-          </Link>
-        </Text>
+        <VStack align="start" gap={0}>
+          <Text
+            fontSize="sm"
+            color={grayText}
+            fontFamily="'Poppins', sans-serif"
+          >
+            I agree to{" "}
+            <Link color="blue.500" href="/terms">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link color="blue.500" href="/privacy">
+              Privacy Policy
+            </Link>
+          </Text>
+          {validationErrors.terms && (
+            <Text color="red.500" fontSize="xs">
+              {validationErrors.terms}
+            </Text>
+          )}
+        </VStack>
       </HStack>
 
       <Button
@@ -656,6 +784,7 @@ const RegisterForm = ({
         _hover={{ transform: "translateY(-1px)" }}
         transition="all 0.2s"
         type="submit"
+        loading={isLoading}
       >
         Create Account
       </Button>
@@ -674,7 +803,7 @@ const PasswordInput = ({
   name,
   value,
   onChange,
-  error,
+  errorMessage,
 }: {
   label: string;
   placeholder: string;
@@ -685,17 +814,20 @@ const PasswordInput = ({
   name?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  error?: string | null;
+  errorMessage?: string; // Changed from error (boolean/string mix) to specific errorMessage
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const isError = !!errorMessage;
 
-  const focusStyles = error ? {
-    borderColor: "red.500",
-    boxShadow: "0 0 0 1px red.500"
-  } : {
-    borderColor: "blue.500",
-    boxShadow: "0 0 0 1px blue.500"
-  };
+  const focusStyles = isError
+    ? {
+        borderColor: "red.500",
+        boxShadow: "0 0 0 1px red.500",
+      }
+    : {
+        borderColor: "blue.500",
+        boxShadow: "0 0 0 1px blue.500",
+      };
 
   return (
     <Box w="full" position="relative">
@@ -712,10 +844,10 @@ const PasswordInput = ({
         type={showPassword ? "text" : "password"}
         placeholder={placeholder}
         bg={inputBg}
-        borderColor={borderColor}
+        borderColor={isError ? "red.500" : borderColor}
         color={textColor}
         _placeholder={{ color: grayText }}
-        _hover={{ borderColor: error ? "red.500" : "blue.500" }}
+        _hover={{ borderColor: isError ? "red.500" : "blue.500" }}
         _focus={focusStyles}
         borderRadius="lg"
         pr={12}
@@ -730,12 +862,17 @@ const PasswordInput = ({
         aria-label={showPassword ? "Hide password" : "Show password"}
         onClick={() => setShowPassword(!showPassword)}
         variant="ghost"
-        color={error ? "red.400" : grayText}
-        _hover={{ color: error ? "red.600" : textColor }}
+        color={isError ? "red.400" : grayText}
+        _hover={{ color: isError ? "red.600" : textColor }}
         size="sm"
       >
         {showPassword ? <FaEyeSlash /> : <FaEye />}
       </IconButton>
+      {isError && (
+        <Text color="red.500" fontSize="xs" mt={1}>
+          {errorMessage}
+        </Text>
+      )}
     </Box>
   );
 };
