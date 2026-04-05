@@ -8,9 +8,11 @@ import HomePage from './components/pages/HomePage';
 import ProtectedRoute from './components/ProtectedRoute';
 import CartPage from './components/pages/CartPage';
 import PublicRoute from './components/PublicRoute';
+import { Toaster } from "@/components/ui/toaster";
 function App() {
   return (
     <>
+      <Toaster />
       <Routes>
         <Route path="/" element={<AppLayout />}>
           <Route index element={<HomePage />} />

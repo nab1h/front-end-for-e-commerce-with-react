@@ -1,4 +1,4 @@
-/*eslint-disable @typescript-eslint/no-unused-vars */
+ 
 import {
   Box,
   Flex,
@@ -21,6 +21,8 @@ import { useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/app/store";
 import { useDispatch } from "react-redux";
 import { logout } from "@/features/auth/authSlice";
+import { selectCart } from "@/features/cartSlice";
+import { toggleCart } from "@/features/globalSlice";
 
 
 
@@ -42,6 +44,8 @@ const Navbar = () => {
   const handleLogout = () => {
     dispatch(logout());
   }
+
+  const { cartProducts } = useSelector(selectCart);
   return (
     <Box
       px={{ base: 4, md: 8 }}
@@ -134,7 +138,7 @@ const Navbar = () => {
           </IconButton>
 
           {/* Cart Button */}
-          <RouterLink to="/cart">
+          
             <IconButton
               aria-label="Cart"
               variant="ghost"
@@ -142,6 +146,7 @@ const Navbar = () => {
               _hover={{ bg: hoverBg }}
               size="md"
               position="relative"
+              onClick={() => dispatch(toggleCart())}
             >
               <FaShoppingCart />
               <Box
@@ -159,10 +164,10 @@ const Navbar = () => {
                 justifyContent="center"
                 fontWeight="600"
               >
-                0
+                {cartProducts.length}
               </Box>
             </IconButton>
-          </RouterLink>
+          
 
           {/* User Button */}
           {isAuthenticated ? (
@@ -199,9 +204,7 @@ const Navbar = () => {
                       <RouterLink to="/setting">settings</RouterLink>
                     </Menu.Item>
                     <Menu.Item value="orders">
-                      <RouterLink to="/orders">
-                      My Orders
-                      </RouterLink>
+                      <RouterLink to="/orders">My Orders</RouterLink>
                     </Menu.Item>
                     <Menu.Item
                       value="delete"

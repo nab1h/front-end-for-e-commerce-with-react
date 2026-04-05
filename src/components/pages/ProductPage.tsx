@@ -1,9 +1,11 @@
 
+import { addToCart } from "@/features/cartSlice";
 import { Container, Flex, Skeleton, SkeletonCircle, Stack } from "@chakra-ui/react";
 import { Badge, Box, Button, Card, HStack, Image } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { RiArrowLeftLine } from "react-icons/ri";
+import { useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 const ProductCard = () => {
     const API_URL = import.meta.env.VITE_SERVER_URL;
@@ -19,7 +21,21 @@ const ProductCard = () => {
        queryKey: ["products", productId],
        queryFn: () => getProductById(productId),
      });
-     console.log(data);
+  const dispatch = useDispatch();
+
+  const addToCartHandler = () => {
+    if (!data) return;
+    const item = {
+      id: data.products.id,
+      name: data.products.name,
+      price: Number(data.products.price),
+      image: data.products.images?.[0]?.image_path || "",
+      quantity: 1,
+    }; 
+    dispatch(addToCart(item));
+     }
+
+  
     const goBack = () => navigate(-1);
      if (isLoading)
        return (
@@ -68,7 +84,7 @@ const ProductCard = () => {
                   </HStack>
                 </Card.Body>
                 <Card.Footer>
-                  <Button>Buy Now</Button>
+                  <Button onClick={addToCartHandler}>Buy Now</Button>
                 </Card.Footer>
               </Box>
             </Card.Root>

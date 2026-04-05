@@ -29,3 +29,15 @@ export interface IProduct {
 export interface IProductsResponse {
   products: IProduct[];
 }
+
+export interface ICartProduct {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+}
+
+export interface ICartItem extends ICartProduct {
+  quantity: number;
+}
