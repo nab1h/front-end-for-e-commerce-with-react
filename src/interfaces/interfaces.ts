@@ -41,3 +41,51 @@ export interface ICartProduct {
 export interface ICartItem extends ICartProduct {
   quantity: number;
 }
+
+// types/dashboard.ts
+
+export interface NavItem {
+  id: string;
+  label: string;
+  icon: React.ReactElement;
+  href?: string;
+  badge?: number;
+}
+
+export interface StatCard {
+  id: string;
+  label: string;
+  value: string | number;
+  change: number;
+  changeType: 'increase' | 'decrease';
+  icon: React.ReactElement;
+  color: string;
+}
+
+export interface Order {
+  id: string;
+  customer: string;
+  email: string;
+  avatar: string;
+  items: number;
+  total: number;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  date: string;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  image: string;
+  category: string;
+  sales: number;
+  revenue: number;
+  stock: number;
+}
+
+export interface SalesData {
+  name: string;
+  sales: number;
+  revenue: number;
+  orders: number;
+}

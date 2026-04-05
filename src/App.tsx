@@ -9,6 +9,10 @@ import ProtectedRoute from './components/ProtectedRoute';
 import CartPage from './components/pages/CartPage';
 import PublicRoute from './components/PublicRoute';
 import { Toaster } from "@/components/ui/toaster";
+import DashboardLayout from './layout/DashboardLayout';
+import Dashboard from './components/dashboard/Dashboard';
+import ProductsDash from './components/dashboard/ProductsDash';
+import OrdersDash from './components/dashboard/OrdersDash';
 function App() {
   return (
     <>
@@ -27,6 +31,15 @@ function App() {
           />
           <Route path="/Product/:id" element={<ProductPage />} />
         </Route>
+
+        {/* dashboard route */}
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path='productsdash' element={<ProductsDash />} />
+          <Route path='ordersdash' element={<OrdersDash />} />
+        </Route>
+
+        {/* public route */}
         <Route
           path="/login"
           element={
