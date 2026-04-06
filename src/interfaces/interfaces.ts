@@ -74,7 +74,7 @@ export interface Order {
 }
 
 export interface Product {
-  id: string;
+  id: number;
   name: string;
   image: string;
   category: string;

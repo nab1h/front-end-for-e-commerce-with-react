@@ -10,7 +10,7 @@ const ProductsPage = () => {
   const API_URL = import.meta.env.VITE_SERVER_URL;
   
 
-    const getProductsList = async () : Promise<IProduct[]>=> {
+   const getProductsList = async () : Promise<IProduct[]>=> {
         const { data } = await axios.get<IProductsResponse>(
           `${import.meta.env.VITE_SERVER_URL}/api/products`
         );

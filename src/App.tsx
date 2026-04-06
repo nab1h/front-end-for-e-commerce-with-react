@@ -11,8 +11,8 @@ import PublicRoute from './components/PublicRoute';
 import { Toaster } from "@/components/ui/toaster";
 import DashboardLayout from './layout/DashboardLayout';
 import Dashboard from './components/dashboard/Dashboard';
-import ProductsDash from './components/dashboard/ProductsDash';
-import OrdersDash from './components/dashboard/OrdersDash';
+import Products from './components/dashboard/Products';
+import Orders from './components/dashboard/Orders';
 function App() {
   return (
     <>
@@ -35,8 +35,8 @@ function App() {
         {/* dashboard route */}
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<Dashboard />} />
-          <Route path='productsdash' element={<ProductsDash />} />
-          <Route path='ordersdash' element={<OrdersDash />} />
+          <Route path='products' element={<Products />} />
+          <Route path='orders' element={<Orders />} />
         </Route>
 
         {/* public route */}

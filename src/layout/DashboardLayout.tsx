@@ -20,9 +20,9 @@ const location = useLocation();
     {
       name: "Products",
       icon: <FiShoppingCart />,
-      link: "/dashboard/productsdash",
+      link: "/dashboard/products",
     },
-    { name: "Orders", icon: <FiUsers />, link: "/dashboard/ordersdash" },
+    { name: "Orders", icon: <FiUsers />, link: "/dashboard/orders" },
     { name: "Settings", icon: <FiSettings />, link: "/settings" },
   ];
 
