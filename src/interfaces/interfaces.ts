@@ -57,7 +57,7 @@ export interface StatCard {
   label: string;
   value: string | number;
   change: number;
-  changeType: 'increase' | 'decrease';
+  changeType: "increase" | "decrease";
   icon: React.ReactElement;
   color: string;
 }
@@ -69,7 +69,7 @@ export interface Order {
   avatar: string;
   items: number;
   total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   date: string;
 }
 
@@ -88,4 +88,12 @@ export interface SalesData {
   sales: number;
   revenue: number;
   orders: number;
+}
+
+export interface ProductInput {
+  name: string;
+  category: string | null;
+  description: string;
+  price: string;
+  stock: string;
 }

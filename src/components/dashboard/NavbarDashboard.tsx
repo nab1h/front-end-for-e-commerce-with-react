@@ -1,4 +1,3 @@
- 
 import {
   Box,
   Flex,
@@ -9,10 +8,10 @@ import {
   useBreakpointValue,
   Image,
   Menu,
-  Portal
+  Portal,
 } from "@chakra-ui/react";
 import { useColorMode, useColorModeValue } from "../ui/color-mode";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { FaMoon, FaSun, FaBars, FaTimes } from "react-icons/fa";
 import { useDispatch } from "react-redux";
@@ -28,12 +27,12 @@ const Navbar = () => {
   const textColor = useColorModeValue("gray.800", "white");
   const hoverBg = useColorModeValue("gray.100", "gray.700");
   const menuBg = useColorModeValue("white", "gray.900");
-  const dispatch = useDispatch<AppDispatch>();
-;
-
+    const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate();
   const handleLogout = () => {
     dispatch(logout());
-  }
+    navigate("/");
+  };
 
   return (
     <Box
@@ -61,50 +60,50 @@ const Navbar = () => {
           </IconButton>
 
           {/* User Button */}
-            <Menu.Root>
-              <Menu.Trigger asChild>
-                <Box
-                  w="40px"
-                  h="40px"
-                  borderRadius="full"
-                  overflow="hidden"
-                  cursor="pointer"
-                  _hover={{
-                    ring: "2px",
-                    ringColor: "blue.500",
-                    ringOffset: "2px",
-                  }}
-                >
-                  <Image
-                    src={userImage}
-                    alt="User"
-                    w="full"
-                    h="full"
-                    objectFit="cover"
-                  />
-                </Box>
-              </Menu.Trigger>
-              <Portal>
-                <Menu.Positioner>
-                  <Menu.Content>
-                    <Menu.Item value="profile">
-                      <RouterLink to="/profile">Profile</RouterLink>
-                    </Menu.Item>
-                    <Menu.Item value="setting">
-                      <RouterLink to="/setting">settings</RouterLink>
-                    </Menu.Item>
-                    <Menu.Item
-                      value="delete"
-                      color="fg.error"
-                      _hover={{ bg: "bg.error", color: "fg.error" }}
-                      onClick={handleLogout}
-                    >
-                      Logout
-                    </Menu.Item>
-                  </Menu.Content>
-                </Menu.Positioner>
-              </Portal>
-            </Menu.Root>
+          <Menu.Root>
+            <Menu.Trigger asChild>
+              <Box
+                w="40px"
+                h="40px"
+                borderRadius="full"
+                overflow="hidden"
+                cursor="pointer"
+                _hover={{
+                  ring: "2px",
+                  ringColor: "blue.500",
+                  ringOffset: "2px",
+                }}
+              >
+                <Image
+                  src={userImage}
+                  alt="User"
+                  w="full"
+                  h="full"
+                  objectFit="cover"
+                />
+              </Box>
+            </Menu.Trigger>
+            <Portal>
+              <Menu.Positioner>
+                <Menu.Content>
+                  <Menu.Item value="profile">
+                    <RouterLink to="/profile">Profile</RouterLink>
+                  </Menu.Item>
+                  <Menu.Item value="setting">
+                    <RouterLink to="/setting">settings</RouterLink>
+                  </Menu.Item>
+                  <Menu.Item
+                    value="delete"
+                    color="fg.error"
+                    _hover={{ bg: "bg.error", color: "fg.error" }}
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </Menu.Item>
+                </Menu.Content>
+              </Menu.Positioner>
+            </Portal>
+          </Menu.Root>
 
           {/* Mobile Menu Button */}
           {isMobile && (
@@ -145,21 +144,21 @@ const Navbar = () => {
           >
             Menu
           </Text>
-              <>
-                <RouterLink to="/profile" onClick={() => setIsMenuOpen(false)}>
-                  <Button
-                    w="full"
-                    variant="ghost"
-                    justifyContent="flex-start"
-                    color={textColor}
-                    _hover={{ bg: hoverBg }}
-                    fontWeight="500"
-                    fontFamily="'Poppins', sans-serif"
-                  >
-                    Profile
-                  </Button>
-                </RouterLink>
-              </>
+          <>
+            <RouterLink to="/profile" onClick={() => setIsMenuOpen(false)}>
+              <Button
+                w="full"
+                variant="ghost"
+                justifyContent="flex-start"
+                color={textColor}
+                _hover={{ bg: hoverBg }}
+                fontWeight="500"
+                fontFamily="'Poppins', sans-serif"
+              >
+                Profile
+              </Button>
+            </RouterLink>
+          </>
         </Box>
       )}
     </Box>

@@ -5,7 +5,6 @@ interface IFormLogin {
   email: string;
   password: string;
 }
-
 export interface IFormRegister {
   firstName: string;
   lastName: string;
@@ -73,7 +72,6 @@ const authSlice = createSlice({
     logout: (state) => {
       state.isAuthenticated = false;
       state.user = { email: "", password: "" };
-
       localStorage.removeItem("token");
     },
 
