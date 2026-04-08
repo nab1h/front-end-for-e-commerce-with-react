@@ -1,0 +1,600 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useState } from "react";
+import {
+  Box,
+  CloseButton,
+  createListCollection,
+  Dialog,
+  Field,
+  HStack,
+  Image,
+  Input,
+  InputGroup,
+  Select,
+  VStack,
+} from "@chakra-ui/react";
+import PageHeader from "./ui/PageHeader";
+import {
+  ActionBar,
+  Button,
+  Checkbox,
+  Kbd,
+  Portal,
+  Table,
+  Flex,
+  IconButton,
+  Badge,
+} from "@chakra-ui/react";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { RiAddLine } from "react-icons/ri";
+import { useQuery } from "@tanstack/react-query";
+import type {
+  IProduct,
+  IProductsResponse,
+  ProductInput,
+} from "@/interfaces/interfaces";
+import axios from "axios";
+import ProductTableSkeleton from "./skelaton/ProductTableSkeleton";
+
+interface CategoryItem {
+  label: string;
+  value: string;
+}
+
+const categories = createListCollection<CategoryItem>({
+  items: [
+    { label: "React.js", value: "react" },
+    { label: "Vue.js", value: "vue" },
+    { label: "Angular", value: "angular" },
+    { label: "Svelte", value: "svelte" },
+  ],
+});
+
+const Dashboard: React.FC = () => {
+  const API_URL = import.meta.env.VITE_SERVER_URL;
+  const [selection, setSelection] = useState<number[]>([]);
+  const hasSelection = selection.length > 0;
+
+  const getProductsList = async (): Promise<IProduct[]> => {
+    const { data } = await axios.get<IProductsResponse>(
+      `${import.meta.env.VITE_SERVER_URL}/api/products`,
+    );
+    return data.products;
+  };
+
+  const { isLoading, data = [] } = useQuery({
+    queryKey: ["products"],
+    queryFn: getProductsList,
+  });
+
+  const indeterminate = hasSelection && selection.length < (data?.length ?? 0);
+
+  // --- States ---
+  const [openAdd, setOpenAdd] = useState(false);
+
+  const [formStore, setFormStore] = useState<ProductInput>({
+    category: null,
+    name: "",
+    description: "",
+    price: "",
+    stock: "",
+  });
+
+  const [editCategory, setEditCategory] = useState<string>("");
+    const [editingProduct, setEditingProduct] = useState<IProduct | null>(null);
+
+console.log(editingProduct);
+  // --- Handlers ---
+  const handleChangeStore = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormStore({
+      ...formStore,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const [images, setImages] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+    setImages((prev) => [...prev, ...files]);
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setPreviewUrls((prev) => [...prev, ...previews]);
+  };
+  const handleImageChangeStore = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+    setImages((prev) => [...prev, ...files]);
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setPreviewUrls((prev) => [...prev, ...previews]);
+  };
+
+  console.log(images);
+  console.log(previewUrls);
+  const handleSubmitStore = () => console.log("Submit", formStore);
+  const handleSubmitEdit = () => {};
+
+  const rows = data?.map((item) => (
+    <Table.Row
+      key={item.id}
+      data-selected={selection.includes(item.id) ? "" : undefined}
+    >
+      <Table.Cell>
+        <Checkbox.Root
+          size="sm"
+          top="0.5"
+          aria-label="Select row"
+          checked={selection.includes(item.id)}
+          onCheckedChange={(changes) => {
+            setSelection((prev) =>
+              changes.checked
+                ? [...prev, item.id]
+                : prev.filter((id) => id !== item.id),
+            );
+          }}
+        >
+          <Checkbox.HiddenInput />
+          <Checkbox.Control />
+        </Checkbox.Root>
+      </Table.Cell>
+      <Table.Cell fontWeight="medium">
+        <Image
+          htmlWidth="70px"
+          htmlHeight="70px"
+          src={
+            item.images?.[0]
+              ? `${API_URL}/storage/${item.images[0].image_path}`
+              : "https://via.placeholder.com/300"
+          }
+        />
+      </Table.Cell>
+      <Table.Cell fontWeight="medium">{item.name}</Table.Cell>
+      <Table.Cell>{item.description}</Table.Cell>
+      <Table.Cell>
+        <Badge colorPalette={item.stock > 10 ? "green" : "red"}>
+          {item.stock}
+        </Badge>
+      </Table.Cell>
+      <Table.Cell>{item.category.name}</Table.Cell>
+      <Table.Cell textAlign="end">${item.price}</Table.Cell>
+
+      <Table.Cell>
+        <Flex gap="2">
+          {/* EDIT DIALOG */}
+          <Dialog.Root lazyMount>
+            <Dialog.Trigger asChild>
+              <IconButton
+                aria-label="Edit"
+                size="sm"
+                variant="ghost"
+                onClick={() => setEditingProduct(item) }
+              >
+                <FiEdit2 />
+              </IconButton>
+            </Dialog.Trigger>
+            <Portal>
+              <Dialog.Backdrop />
+              <Dialog.Positioner>
+                <Dialog.Content>
+                  <Dialog.Header>
+                    <Dialog.Title>Edit Product</Dialog.Title>
+                  </Dialog.Header>
+                  <Dialog.Body>
+                    <Box maxW="500px" mx="auto" mt={5}>
+                      <form onSubmit={handleSubmitEdit}>
+                        <VStack gap={4}>
+                          <Field.Root required>
+                            <Field.Label>Product Name</Field.Label>
+                            <Input
+                              placeholder="Enter name"
+                              value={editingProduct}
+                            />
+                          </Field.Root>
+                          <Field.Root required>
+                            <Field.Label>Description</Field.Label>
+                            <Input placeholder="Enter description" />
+                          </Field.Root>
+                          <HStack w={"full"}>
+                            <Flex
+                              gap={8}
+                              w={"full"}
+                              justifyContent="space-between"
+                            >
+                              <Field.Root required>
+                                <Field.Label>Price</Field.Label>
+                                <InputGroup startElement="$">
+                                  <Input placeholder="0.00" />
+                                </InputGroup>
+                              </Field.Root>
+                              <Field.Root required>
+                                <Field.Label>Stock</Field.Label>
+                                <InputGroup>
+                                  <Input placeholder="1" />
+                                </InputGroup>
+                              </Field.Root>
+                            </Flex>
+                          </HStack>
+
+                          {/* --- EDIT SELECT --- */}
+                          <Select.Root
+                            collection={categories}
+                            w="full"
+                            value={editCategory ? [editCategory] : []}
+                            onValueChange={(e) => {
+                              setEditCategory(e.value[0] || "");
+                            }}
+                          >
+                            <Select.HiddenSelect />
+                            <Select.Label>Select category</Select.Label>
+                            <Select.Control>
+                              <Select.Trigger>
+                                <Select.ValueText placeholder="Select category" />
+                              </Select.Trigger>
+                              <Select.IndicatorGroup>
+                                <Select.Indicator />
+                              </Select.IndicatorGroup>
+                            </Select.Control>
+                            <Portal>
+                              <Select.Positioner>
+                                <Select.Content>
+                                  {categories.items.map((category) => (
+                                    <Select.Item
+                                      item={category}
+                                      key={category.value}
+                                    >
+                                      {category.label}
+                                      <Select.ItemIndicator />
+                                    </Select.Item>
+                                  ))}
+                                </Select.Content>
+                              </Select.Positioner>
+                            </Portal>
+                          </Select.Root>
+                          <Field.Root>
+                            <Field.Label>Product Images</Field.Label>
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={handleImageChange}
+                              p={1}
+                            />
+                            <Flex gap={3} mt={2} wrap="wrap">
+                              {previewUrls.map((img, index) => (
+                                <Box
+                                  key={index}
+                                  w="80px"
+                                  h="80px"
+                                  borderRadius="md"
+                                  overflow="hidden"
+                                  position="relative"
+                                >
+                                  <Image
+                                    src={img}
+                                    alt="preview"
+                                    w="100%"
+                                    h="100%"
+                                    objectFit="cover"
+                                  />
+                                  <Box
+                                    position="absolute"
+                                    top="1"
+                                    right="1"
+                                    bg="blackAlpha.700"
+                                    borderRadius="full"
+                                    cursor="pointer"
+                                    px={2}
+                                    fontSize="12px"
+                                    color="white"
+                                    onClick={() => handleRemoveImage(index)}
+                                  >
+                                    ✕
+                                  </Box>
+                                </Box>
+                              ))}
+                            </Flex>
+                          </Field.Root>
+
+                          <Dialog.Footer w="full">
+                            <Flex
+                              w="full"
+                              justifyContent="space-between"
+                              align="center"
+                            >
+                              <Dialog.ActionTrigger asChild>
+                                <Button variant="outline">Cancel</Button>
+                              </Dialog.ActionTrigger>
+                              <Button colorScheme="teal">Save</Button>
+                            </Flex>
+                          </Dialog.Footer>
+                        </VStack>
+                      </form>
+                    </Box>
+                  </Dialog.Body>
+                  <Dialog.CloseTrigger asChild>
+                    <CloseButton size="sm" />
+                  </Dialog.CloseTrigger>
+                </Dialog.Content>
+              </Dialog.Positioner>
+            </Portal>
+          </Dialog.Root>
+
+          {/* DELETE DIALOG */}
+          <Dialog.Root role="alertdialog">
+            <Dialog.Trigger asChild>
+              <IconButton
+                aria-label="Delete"
+                size="sm"
+                variant="ghost"
+                colorPalette="red"
+              >
+                <FiTrash2 />
+              </IconButton>
+            </Dialog.Trigger>
+            <Portal>
+              <Dialog.Backdrop />
+              <Dialog.Positioner>
+                <Dialog.Content>
+                  <Dialog.Header>
+                    <Dialog.Title>Are you sure?</Dialog.Title>
+                  </Dialog.Header>
+                  <Dialog.Body>
+                    <p>This action cannot be undone.</p>
+                  </Dialog.Body>
+                  <Dialog.Footer>
+                    <Dialog.ActionTrigger asChild>
+                      <Button variant="outline">Cancel</Button>
+                    </Dialog.ActionTrigger>
+                    <Button colorPalette="red">Delete</Button>
+                  </Dialog.Footer>
+                  <Dialog.CloseTrigger asChild>
+                    <CloseButton size="sm" />
+                  </Dialog.CloseTrigger>
+                </Dialog.Content>
+              </Dialog.Positioner>
+            </Portal>
+          </Dialog.Root>
+        </Flex>
+      </Table.Cell>
+    </Table.Row>
+  ));
+
+  if (isLoading) return <ProductTableSkeleton />;
+
+  function handleRemoveImage(_index: number): void {
+    throw new Error("Function not implemented.");
+  }
+
+  return (
+    <>
+      
+      <VStack align="stretch" gap={4} w="full" overflowX="scroll">
+        <PageHeader title={"MY PRODUCTS"} />
+
+        {/* ADD DIALOG */}
+        <Dialog.Root
+          lazyMount
+          open={openAdd}
+          onOpenChange={(e) => setOpenAdd(e.open)}
+        >
+          <Dialog.Trigger asChild>
+            <Button colorPalette="teal" variant="solid">
+              <RiAddLine /> Add New Product
+            </Button>
+          </Dialog.Trigger>
+          <Portal>
+            <Dialog.Backdrop />
+            <Dialog.Positioner>
+              <Dialog.Content>
+                <Dialog.Header>
+                  <Dialog.Title>Add New Product</Dialog.Title>
+                </Dialog.Header>
+                <Dialog.Body>
+                  <Box maxW="500px" mx="auto" mt={5}>
+                    <form onSubmit={handleSubmitStore}>
+                      <VStack gap={4}>
+                        <Field.Root required>
+                          <Field.Label>Product Name</Field.Label>
+                          <Input
+                            name="name"
+                            onChange={handleChangeStore}
+                            value={formStore.name}
+                          />
+                        </Field.Root>
+
+                        <Field.Root required>
+                          <Field.Label>Description</Field.Label>
+                          <Input
+                            name="description"
+                            onChange={handleChangeStore}
+                            value={formStore.description}
+                          />
+                        </Field.Root>
+
+                        <HStack w={"full"}>
+                          <Flex
+                            gap={8}
+                            w={"full"}
+                            justifyContent="space-between"
+                          >
+                            <Field.Root required>
+                              <Field.Label>Price</Field.Label>
+                              <InputGroup startElement="$">
+                                <Input
+                                  name="price"
+                                  onChange={handleChangeStore}
+                                  value={formStore.price}
+                                />
+                              </InputGroup>
+                            </Field.Root>
+                            <Field.Root required>
+                              <Field.Label>Stock</Field.Label>
+                              <InputGroup>
+                                <Input
+                                  name="stock"
+                                  onChange={handleChangeStore}
+                                  value={formStore.stock}
+                                />
+                              </InputGroup>
+                            </Field.Root>
+                          </Flex>
+                        </HStack>
+
+                        {/* --- ADD SELECT --- */}
+                        <Select.Root
+                          collection={categories}
+                          w="full"
+                          value={formStore.category ? [formStore.category] : []}
+                          onValueChange={(e) => {
+                            setFormStore((prev) => ({
+                              ...prev,
+                              category: e.value[0] || "",
+                            }));
+                          }}
+                        >
+                          <Select.HiddenSelect />
+                          <Select.Label>Select category</Select.Label>
+                          <Select.Control>
+                            <Select.Trigger>
+                              <Select.ValueText placeholder="Select category" />
+                            </Select.Trigger>
+                            <Select.IndicatorGroup>
+                              <Select.Indicator />
+                            </Select.IndicatorGroup>
+                          </Select.Control>
+                          <Portal>
+                            <Select.Positioner>
+                              <Select.Content>
+                                {categories.items.map((category) => (
+                                  <Select.Item
+                                    item={category}
+                                    key={category.value}
+                                  >
+                                    {category.label}
+                                    <Select.ItemIndicator />
+                                  </Select.Item>
+                                ))}
+                              </Select.Content>
+                            </Select.Positioner>
+                          </Portal>
+                        </Select.Root>
+                        <Field.Root>
+                          <Field.Label>Product Images</Field.Label>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleImageChangeStore}
+                            p={1}
+                          />
+                          <Flex gap={3} mt={2} wrap="wrap">
+                            {previewUrls.map((img, index) => (
+                              <Box
+                                key={index}
+                                w="80px"
+                                h="80px"
+                                borderRadius="md"
+                                overflow="hidden"
+                                position="relative"
+                              >
+                                <Image
+                                  src={img}
+                                  alt="preview"
+                                  w="100%"
+                                  h="100%"
+                                  objectFit="cover"
+                                />
+                                <Box
+                                  position="absolute"
+                                  top="1"
+                                  right="1"
+                                  bg="blackAlpha.700"
+                                  borderRadius="full"
+                                  cursor="pointer"
+                                  px={2}
+                                  fontSize="12px"
+                                  color="white"
+                                >
+                                  ✕
+                                </Box>
+                              </Box>
+                            ))}
+                          </Flex>
+                        </Field.Root>
+
+                        <Dialog.Footer w="full">
+                          <Flex w="full" justifyContent="space-between">
+                            <Dialog.ActionTrigger asChild>
+                              <Button variant="outline">Cancel</Button>
+                            </Dialog.ActionTrigger>
+                            <Button colorScheme="teal">Save Product</Button>
+                          </Flex>
+                        </Dialog.Footer>
+                      </VStack>
+                    </form>
+                  </Box>
+                </Dialog.Body>
+                <Dialog.CloseTrigger asChild>
+                  <CloseButton size="sm" />
+                </Dialog.CloseTrigger>
+              </Dialog.Content>
+            </Dialog.Positioner>
+          </Portal>
+        </Dialog.Root>
+
+        <Table.Root size={{ base: "sm", md: "md" }}>
+          <Table.Header>
+            <Table.Row>
+              <Table.ColumnHeader w="6">
+                <Checkbox.Root
+                  size="sm"
+                  checked={
+                    indeterminate ? "indeterminate" : selection.length > 0
+                  }
+                  onCheckedChange={(changes) =>
+                    setSelection(
+                      changes.checked ? data.map((item) => item.id) : [],
+                    )
+                  }
+                >
+                  <Checkbox.HiddenInput />
+                  <Checkbox.Control />
+                </Checkbox.Root>
+              </Table.ColumnHeader>
+              <Table.ColumnHeader>Image</Table.ColumnHeader>
+              <Table.ColumnHeader>Product</Table.ColumnHeader>
+              <Table.ColumnHeader>Title</Table.ColumnHeader>
+              <Table.ColumnHeader>Stock</Table.ColumnHeader>
+              <Table.ColumnHeader>Category</Table.ColumnHeader>
+              <Table.ColumnHeader>Price</Table.ColumnHeader>
+              <Table.ColumnHeader>Controller</Table.ColumnHeader>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>{rows}</Table.Body>
+        </Table.Root>
+
+        <ActionBar.Root open={hasSelection}>
+          <Portal>
+            <ActionBar.Positioner>
+              <ActionBar.Content>
+                <ActionBar.SelectionTrigger>
+                  {selection.length} selected
+                </ActionBar.SelectionTrigger>
+                <ActionBar.Separator />
+                <Button variant="outline" size="sm" color={"red.500"}>
+                  Delete <Kbd>⌫</Kbd>
+                </Button>
+              </ActionBar.Content>
+            </ActionBar.Positioner>
+          </Portal>
+        </ActionBar.Root>
+      </VStack>
+    </>
+  );
+};
+
+export default Dashboard;
+
+
+
