@@ -1,3 +1,5 @@
+import type { IUploadedFile } from "@/components/dashboard/UploadPhotoAdd";
+
 export interface ICategory {
   id: number;
   name: string;
@@ -112,3 +114,20 @@ export interface ICategoriesResponse {
 }
 // =====================================
 // =====================================
+export interface IFormData {
+  name: string;
+  description: string;
+  price: string;
+  stock: number;
+  images: IUploadedFile[];
+  category: string;
+}
+// =====================================
+export interface IProductEdit{
+    name: string;
+  description: string;
+  price: string;
+  stock: number;
+  images: IUploadedFile[];
+  category: string;
+}

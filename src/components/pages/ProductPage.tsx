@@ -29,7 +29,9 @@ const ProductCard = () => {
       id: data.products.id,
       name: data.products.name,
       price: Number(data.products.price),
-      image: data.products.images?.[0]?.image_path || "",
+      image: data.products.images?.[0]
+        ? `${API_URL}/storage/${data.products.images[0].image_path}`
+        : "https://via.placeholder.com/300",
       quantity: 1,
     }; 
     dispatch(addToCart(item));
@@ -71,13 +73,18 @@ const ProductCard = () => {
               <Image
                 objectFit="cover"
                 w={{ base: "full", md: "50%" }}
-                src="https://images.unsplash.com/photo-1667489022797-ab608913feeb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHw5fHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=800&q=60"
-                alt={data.products.name}
+                src={
+                  data.products.images?.[0]
+                    ? `${API_URL}/storage/${data.products.images[0].image_path}`
+                    : "https://via.placeholder.com/300"
+                }
               />
               <Box maxH="xxl">
                 <Card.Body>
                   <Card.Title mb="2">{data.products.name}</Card.Title>
-                  <Card.Description>{data.products.description}</Card.Description>
+                  <Card.Description>
+                    {data.products.description}
+                  </Card.Description>
                   <HStack mt="4">
                     <Badge>Hot</Badge>
                     <Badge>Caffeine</Badge>

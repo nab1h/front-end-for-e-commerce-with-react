@@ -1,9 +1,12 @@
+import type { InputValue } from "@/components/dashboard/DialogAddProduct";
 import type { IUploadedFile } from "@/components/dashboard/UploadPhotoAdd";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 interface GlobalState {
   isCartOpen: boolean;
   isAddProductOpen: boolean;
+  isEditProductOpen: boolean;
+  currentProduct: InputValue | null;
   whyIsSelected: string;
   files: IUploadedFile[];
 }
@@ -11,6 +14,8 @@ interface GlobalState {
 const initialState: GlobalState = {
   isCartOpen: false,
   isAddProductOpen: false,
+  isEditProductOpen: false,
+  currentProduct: null,
   whyIsSelected: "",
   files: [],
 };
@@ -34,6 +39,16 @@ const globalSlice = createSlice({
     },
     closeAddProduct: (state) => {
       state.isAddProductOpen = false;
+    },
+    // ───────────── Edit Product Dialog ─────────────
+    openEditProduct: (state) => {
+      state.isEditProductOpen = true;
+    },
+    closeEditProduct: (state) => {
+      state.isEditProductOpen = false;
+    },
+    setCurrentProduct: (state, action: PayloadAction<InputValue>) => {
+      state.currentProduct = action.payload;
     },
     // ───────────── Add Select Category Product Dialog ─────────────
     selectedAdd: (state, action: PayloadAction<string>) => {
@@ -65,5 +80,8 @@ export const {
   addFiles,
   setFiles,
   clearFiles,
+  openEditProduct,
+  closeEditProduct,
+  setCurrentProduct,
 } = globalSlice.actions;
 export default globalSlice.reducer;

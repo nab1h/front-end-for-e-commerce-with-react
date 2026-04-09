@@ -5,6 +5,7 @@ import { FiPlus } from "react-icons/fi";
 import DialogAddProduct from "./DialogAddProduct";
 import { useDispatch } from "react-redux";
 import { openAddProduct } from "@/features/globalSlice";
+import DialogEditProduct from "./DialogEditProduct";
 
 
 
@@ -31,6 +32,7 @@ const Products = () => {
       </Flex>
       <ProductsTable />
       <DialogAddProduct />
+      <DialogEditProduct />
     </>
   );
 };

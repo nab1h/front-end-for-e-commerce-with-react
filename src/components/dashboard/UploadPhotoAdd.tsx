@@ -12,6 +12,7 @@ export interface IUploadedFile {
   size: number;
   type: string;
   url: string;
+  file: File;
 }
 
 const FileUploadList = () => {
@@ -27,6 +28,7 @@ const FileUploadList = () => {
       size: file.size,
       type: file.type,
       url: URL.createObjectURL(file),
+      file: file,
     }));
 
     dispatch(addFiles(sanitizedFiles));

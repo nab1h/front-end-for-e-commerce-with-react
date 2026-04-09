@@ -1,6 +1,5 @@
 import type { RootState } from "@/app/store";
-import { closeAddProduct } from "@/features/globalSlice";
-import { useMutation } from "@tanstack/react-query";
+import { closeEditProduct } from "@/features/globalSlice";
 import {
   Box,
   Button,
@@ -16,86 +15,57 @@ import {
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import SelectedAdd from "./SelectedAdd";
-import UploadPhotoAdd, { type IUploadedFile } from "./UploadPhotoAdd";
-import { useState } from "react";
-import axios from "axios";
+import UploadPhotoAdd from "./UploadPhotoAdd";
+import { useEffect, useState } from "react";
+import type { InputValue } from "./DialogAddProduct";
 
-export interface InputValue {
-  name: string;
-  description: string;
-  price: string;
-  stock: number;
-}
-const DialogAddProduct = () => {
-  const API_URL = import.meta.env.VITE_SERVER_URL;
-  const dispatch = useDispatch();
+const DialogEditProduct = () => {
+    const dispatch = useDispatch();
+      const [inputValue, setInputValue] = useState<InputValue>({
+        name: "",
+        description: "",
+        price: "",
+        stock: 0,
+      });
   const isOpen = useSelector(
-    (state: RootState) => state.global.isAddProductOpen,
+    (state: RootState) => state.global.isEditProductOpen,
   );
+  const product = useSelector(
+    (state: RootState) => state.global.currentProduct,
+    );
+ useEffect(() => {
+   if (isOpen && product) {
+     // eslint-disable-next-line react-hooks/set-state-in-effect
+     setInputValue({
+       name: product.name,
+       description: product.description,
+       price: product.price,
+       stock: product.stock,
+     });
+   }
+ }, [isOpen, product]);
 
-  const [inputValue, setInputValue] = useState<InputValue>({
-    name: "",
-    description: "",
-    price: "",
-    stock: 0,
-  });
+
+
+
   const handelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue({
       ...inputValue,
       [e.target.name]: e.target.value,
     });
-  };
+    };
+    
 
-  const category = useSelector(
-    (state: RootState) => state.global.whyIsSelected,
-  );
+  const handleSubmit = () => {};
 
-  const images = useSelector((state: RootState) => state.global.files);
 
-  const mutation = useMutation({
-    mutationFn: async (data: FormData) => {
-      const token = localStorage.getItem("token");
 
-      const res = await axios.post(`${API_URL}/api/products`, data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-          Accept: "application/json",
-        },
-      });
-          
-      console.log(res.data);
-    return res.data;
-    },
-
-    onSuccess: () => {
-      console.log("done ✅");
-    },
-
-    onError: (err) => {
-      console.log("error ❌", err);
-    },
-  });
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-    const formData = new FormData();
-    formData.append("name", inputValue.name);
-    formData.append("description", inputValue.description);
-    formData.append("price", inputValue.price);
-    formData.append("stock", String(inputValue.stock));
-    formData.append("category", category);
-    images.forEach((img: IUploadedFile) => {
-      formData.append("images[]", img.file);
-    });
-    mutation.mutate(formData);
-  };
   return (
     <>
       <Dialog.Root
         open={isOpen}
         onOpenChange={(details) => {
-          if (!details.open) dispatch(closeAddProduct());
+          if (!details.open) dispatch(closeEditProduct());
         }}
         lazyMount
       >
@@ -104,7 +74,7 @@ const DialogAddProduct = () => {
           <Dialog.Positioner>
             <Dialog.Content>
               <Dialog.Header>
-                <Dialog.Title>Add Product</Dialog.Title>
+                <Dialog.Title>Edit Product</Dialog.Title>
               </Dialog.Header>
               <Dialog.Body>
                 <Box maxW="500px" mx="auto" mt={5}>
@@ -184,7 +154,7 @@ const DialogAddProduct = () => {
               <Dialog.CloseTrigger asChild>
                 <CloseButton
                   size="sm"
-                  onClick={() => dispatch(closeAddProduct())}
+                  onClick={() => dispatch(closeEditProduct())}
                 />
               </Dialog.CloseTrigger>
             </Dialog.Content>
@@ -194,4 +164,4 @@ const DialogAddProduct = () => {
     </>
   );
 };
-export default DialogAddProduct;
+export default DialogEditProduct;
