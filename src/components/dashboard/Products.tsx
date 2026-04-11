@@ -6,6 +6,7 @@ import DialogAddProduct from "./DialogAddProduct";
 import { useDispatch } from "react-redux";
 import { openAddProduct } from "@/features/globalSlice";
 import DialogEditProduct from "./DialogEditProduct";
+import ConfirmDelete from "./ConfirmDelete";
 
 
 
@@ -31,6 +32,7 @@ const Products = () => {
         </Button>
       </Flex>
       <ProductsTable />
+      <ConfirmDelete />
       <DialogAddProduct />
       <DialogEditProduct />
     </>

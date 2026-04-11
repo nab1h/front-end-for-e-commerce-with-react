@@ -7,7 +7,7 @@ import type {
   InputValueEdit,
   IProductsResponse,
 } from "@/interfaces/interfaces";
-import { openEditProduct, setCurrentProduct } from "@/features/globalSlice";
+import { openDialogDelete, openEditProduct, setCurrentProduct } from "@/features/globalSlice";
 import { useDispatch } from "react-redux";
 
 const ProductsTable = () => {
@@ -97,6 +97,7 @@ const ProductsTable = () => {
                 size="sm"
                 variant="ghost"
                 colorPalette="red"
+                onClick={() => dispatch(openDialogDelete(item.id))}
               >
                 <FiTrash2 />
               </IconButton>

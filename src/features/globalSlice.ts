@@ -6,6 +6,8 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 interface GlobalState {
   isCartOpen: boolean;
   isAddProductOpen: boolean;
+  isOpenDialogDelete: boolean;
+  idDialogDelete: number | null;
   isEditProductOpen: boolean;
   currentProduct: InputValueEdit | null;
   whyIsSelected: string;
@@ -18,6 +20,8 @@ const initialState: GlobalState = {
   isCartOpen: false,
   isAddProductOpen: false,
   isEditProductOpen: false,
+  isOpenDialogDelete: false,
+  idDialogDelete: null,
   currentProduct: null,
   whyIsSelected: "",
   whyIsSelectedEdit: "",
@@ -93,6 +97,15 @@ const globalSlice = createSlice({
     clearEditImages: (state) => {
       state.editImages = [];
     },
+    // ───────────── Edit Product Dialog ─────────────
+    openDialogDelete: (state, action: PayloadAction<number>) => {
+      state.idDialogDelete = action.payload;
+      state.isOpenDialogDelete = true;
+    },
+    closeDialogDelete: (state) => {
+      state.idDialogDelete = null;
+      state.isOpenDialogDelete = false;
+    }
   },
 });
 
@@ -114,5 +127,7 @@ export const {
   addEditImage,
   removeEditImage,
   clearEditImages,
+  openDialogDelete,
+  closeDialogDelete,
 } = globalSlice.actions;
 export default globalSlice.reducer;
