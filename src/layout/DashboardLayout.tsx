@@ -27,6 +27,7 @@ const location = useLocation();
   ];
 
   return (
+    
     <VStack gap={4} align="stretch" p={4}>
       <Text fontSize="xl" fontWeight="bold" mb={4} color="teal.500">
         DASHBOARD
@@ -112,7 +113,7 @@ const DashboardLayout = () => {
       <Box ml={{ base: 0, md: "250px" }}>
         <NavbarDashboard />
         <Box p={4}>
-          <Outlet /> 
+          <Outlet />
         </Box>
       </Box>
     </Box>

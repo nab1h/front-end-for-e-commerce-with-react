@@ -1,14 +1,17 @@
-import type { InputValue } from "@/components/dashboard/DialogAddProduct";
+
 import type { IUploadedFile } from "@/components/dashboard/UploadPhotoAdd";
+import type { IEditImage, InputValueEdit } from "@/interfaces/interfaces";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 interface GlobalState {
   isCartOpen: boolean;
   isAddProductOpen: boolean;
   isEditProductOpen: boolean;
-  currentProduct: InputValue | null;
+  currentProduct: InputValueEdit | null;
   whyIsSelected: string;
+  whyIsSelectedEdit: string;
   files: IUploadedFile[];
+  editImages: IEditImage[];
 }
 
 const initialState: GlobalState = {
@@ -17,7 +20,9 @@ const initialState: GlobalState = {
   isEditProductOpen: false,
   currentProduct: null,
   whyIsSelected: "",
+  whyIsSelectedEdit: "",
   files: [],
+  editImages: [],
 };
 
 const globalSlice = createSlice({
@@ -47,7 +52,7 @@ const globalSlice = createSlice({
     closeEditProduct: (state) => {
       state.isEditProductOpen = false;
     },
-    setCurrentProduct: (state, action: PayloadAction<InputValue>) => {
+    setCurrentProduct: (state, action: PayloadAction<InputValueEdit>) => {
       state.currentProduct = action.payload;
     },
     // ───────────── Add Select Category Product Dialog ─────────────
@@ -66,7 +71,28 @@ const globalSlice = createSlice({
     },
     // ───────────── Edit Product Dialog ─────────────
 
-    // ───────────── edit Select Category Product Dialog ─────────────
+    // ───────────── Edit Select Category Product Dialog ─────────────
+    selectedEdit: (state, action: PayloadAction<string>) => {
+      state.whyIsSelectedEdit = action.payload;
+    },
+
+    setEditImages: (state, action: PayloadAction<IEditImage[]>) => {
+      state.editImages = action.payload;
+    },
+
+    addEditImage: (state, action: PayloadAction<IEditImage>) => {
+      state.editImages.push(action.payload);
+    },
+
+    removeEditImage: (state, action: PayloadAction<number>) => {
+      state.editImages = state.editImages.filter(
+        (img) => img.id !== action.payload,
+      );
+    },
+
+    clearEditImages: (state) => {
+      state.editImages = [];
+    },
   },
 });
 
@@ -83,5 +109,10 @@ export const {
   openEditProduct,
   closeEditProduct,
   setCurrentProduct,
+  selectedEdit,
+  setEditImages,
+  addEditImage,
+  removeEditImage,
+  clearEditImages,
 } = globalSlice.actions;
 export default globalSlice.reducer;

@@ -3,8 +3,6 @@ import type { IUploadedFile } from "@/components/dashboard/UploadPhotoAdd";
 export interface ICategory {
   id: number;
   name: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface IProductImage {
@@ -103,12 +101,10 @@ export interface ProductInput {
 // =====================================
 // Category-----------------------------
 // =====================================
-export interface ICategory {
-  id: number;
-  name: string;
-  created_at: string;
-  updated_at: string;
-}
+// export interface ICategory {
+//   id: number;
+//   name: string;
+// }
 export interface ICategoriesResponse {
   categories: ICategory[];
 }
@@ -123,11 +119,41 @@ export interface IFormData {
   category: string;
 }
 // =====================================
-export interface IProductEdit{
-    name: string;
+export interface IProductEdit {
+  name: string;
   description: string;
   price: string;
   stock: number;
   images: IUploadedFile[];
   category: string;
+}
+// =====================================
+export interface IImage {
+  id: number;
+  image_path: string;
+}
+export interface InputValueEdit {
+  id: number;
+  name: string;
+  description: string;
+  price: string;
+  stock: number;
+  category: ICategory;
+  images: IImage[];
+}
+
+export interface IProductImage {
+  id: number;
+  product_id: number;
+  image_path: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IEditImage {
+  id: number;
+  url: string;
+  image_path: string;
+  isNew: boolean;
+  file?: File;
 }

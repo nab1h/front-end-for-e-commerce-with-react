@@ -3,16 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import ProductTableSkeleton from "./skelaton/ProductTableSkeleton";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
-import type { IProductsResponse } from "@/interfaces/interfaces";
+import type {
+  InputValueEdit,
+  IProductsResponse,
+} from "@/interfaces/interfaces";
 import { openEditProduct, setCurrentProduct } from "@/features/globalSlice";
 import { useDispatch } from "react-redux";
-import type { InputValue } from "./DialogAddProduct";
 
 const ProductsTable = () => {
   const dispatch = useDispatch();
   const API_URL = import.meta.env.VITE_SERVER_URL;
   const getProductsList = async () => {
-    const { data } = await axios.get<IProductsResponse>(`${API_URL}/api/products`);
+    const { data } = await axios.get<IProductsResponse>(
+      `${API_URL}/api/products`,
+    );
     return data.products;
   };
 
@@ -27,19 +31,15 @@ const ProductsTable = () => {
       <Alert.Root variant="subtle" colorPalette="red" borderRadius="md">
         <Alert.Indicator />
         <Alert.Title>Server Error</Alert.Title>
-        <Alert.Description>
-          {error.message}
-        </Alert.Description>
+        <Alert.Description>{error.message}</Alert.Description>
       </Alert.Root>
     );
   }
 
-  const handleEdit = (item:InputValue) => {
-    dispatch(openEditProduct())
+  const handleEdit = (item: InputValueEdit) => {
+    dispatch(openEditProduct());
     dispatch(setCurrentProduct(item));
-    
-  }
-
+  };
 
   return (
     <Table.Root size="sm" variant="outline">

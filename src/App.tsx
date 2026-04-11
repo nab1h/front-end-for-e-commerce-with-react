@@ -11,8 +11,8 @@ import PublicRoute from './components/PublicRoute';
 import { Toaster } from "@/components/ui/toaster";
 import DashboardLayout from './layout/DashboardLayout';
 import Dashboard from './components/dashboard/Dashboard';
-import Products from './components/dashboard/Products';
 import Orders from './components/dashboard/Orders';
+import Products from './components/dashboard/products';
 function App() {
   return (
     <>

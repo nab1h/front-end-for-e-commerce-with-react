@@ -1,5 +1,10 @@
 import type { RootState } from "@/app/store";
-import { closeEditProduct } from "@/features/globalSlice";
+import {
+  clearEditImages,
+  closeEditProduct,
+  selectedEdit,
+  setEditImages,
+} from "@/features/globalSlice";
 import {
   Box,
   Button,
@@ -14,51 +19,141 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
-import SelectedAdd from "./SelectedAdd";
-import UploadPhotoAdd from "./UploadPhotoAdd";
 import { useEffect, useState } from "react";
-import type { InputValue } from "./DialogAddProduct";
-
+import type {
+  IEditImage,
+  InputValueEdit,
+  IProductImage,
+} from "@/interfaces/interfaces";
+import SelectedEdit from "./SelectedEdit";
+import UploadPhotoEdit from "./UploadPhotoEdit";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
+import { errorToast, loadingToast, successToast } from "./ToastProductDashboard";
+const API_URL = import.meta.env.VITE_SERVER_URL;
 const DialogEditProduct = () => {
-    const dispatch = useDispatch();
-      const [inputValue, setInputValue] = useState<InputValue>({
-        name: "",
-        description: "",
-        price: "",
-        stock: 0,
-      });
+  const dispatch = useDispatch();
+  const [inputValue, setInputValue] = useState<InputValueEdit>({
+    id: 0,
+    name: "",
+    description: "",
+    price: "",
+    stock: 1,
+    category: {
+      id: 0,
+      name: "",
+    },
+    images: [],
+  });
   const isOpen = useSelector(
     (state: RootState) => state.global.isEditProductOpen,
   );
   const product = useSelector(
     (state: RootState) => state.global.currentProduct,
-    );
- useEffect(() => {
-   if (isOpen && product) {
-     // eslint-disable-next-line react-hooks/set-state-in-effect
-     setInputValue({
-       name: product.name,
-       description: product.description,
-       price: product.price,
-       stock: product.stock,
-     });
-   }
- }, [isOpen, product]);
+  );
+  console.log(product);
+  useEffect(() => {
+    if (isOpen && product && product.images) {
+      const images: IEditImage[] = (product.images as IProductImage[]).map(
+        (img) => ({
+          id: img.id,
+          url: `${API_URL}/storage/${img.image_path}`,
+          image_path: img.image_path,
+          isNew: false,
+        }),
+      );
 
+      dispatch(setEditImages(images));
+      dispatch(selectedEdit(String(product.category.id)));
 
-
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setInputValue({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        stock: product.stock,
+        category: {
+          id: product.category.id,
+          name: product.category.name,
+        },
+        images: product.images,
+      });
+    }
+  }, [dispatch, isOpen, product]);
 
   const handelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue({
       ...inputValue,
       [e.target.name]: e.target.value,
     });
-    };
-    
+  };
 
-  const handleSubmit = () => {};
+  const category = useSelector(
+    (state: RootState) => state.global.whyIsSelectedEdit,
+  );
+  const editImages = useSelector((state: RootState) => state.global.editImages);
 
+  const mutation = useMutation({
+    mutationFn: async (data: FormData) => {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        `${API_URL}/api/products/${product?.id}?_method=PUT`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+            Accept: "application/json",
+          },
+        },
+      );
 
+      return res.data;
+    },
+    onMutate: () => {
+      loadingToast();
+    },
+    onSuccess: () => {
+      console.log('doneeeeeeeeeeeeeeeeeeeeeee')
+      successToast();
+      dispatch(clearEditImages());
+      dispatch(closeEditProduct());
+    },
+    onError: () => {
+      errorToast();
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData();
+
+    formData.append("name", inputValue.name);
+    formData.append("description", inputValue.description);
+    formData.append("price", inputValue.price);
+    formData.append("stock", String(inputValue.stock));
+    formData.append("category", category);
+
+    const existingImages = editImages
+      .filter((img) => !img.isNew)
+      .map((img) => img.id);
+
+    formData.append("existing_images", JSON.stringify(existingImages));
+
+    const newImages = editImages.filter((img) => img.isNew && img.file);
+
+    newImages.forEach((img) => {
+      if (img.file) {
+        formData.append("new_images[]", img.file);
+      }
+    });
+    formData.forEach((value, key) => {
+      console.log(key, value);
+    });
+
+    mutation.mutate(formData);
+  };
 
   return (
     <>
@@ -125,14 +220,14 @@ const DialogEditProduct = () => {
                             </InputGroup>
                           </Field.Root>
                         </Flex>
-                        <SelectedAdd />
+                        <SelectedEdit />
                       </HStack>
 
                       <Field.Root>
                         <Field.Label>Product Images</Field.Label>
                       </Field.Root>
 
-                      <UploadPhotoAdd />
+                      <UploadPhotoEdit />
                       <Dialog.Footer w="full">
                         <Flex
                           w="full"

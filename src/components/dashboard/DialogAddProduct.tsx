@@ -19,6 +19,8 @@ import SelectedAdd from "./SelectedAdd";
 import UploadPhotoAdd, { type IUploadedFile } from "./UploadPhotoAdd";
 import { useState } from "react";
 import axios from "axios";
+import { errorToast, loadingToast, successToast } from "./ToastProductDashboard";
+// import { showToast, updateToastError, updateToastSuccess } from "./ToastProductDashboard";
 
 export interface InputValue {
   name: string;
@@ -37,7 +39,7 @@ const DialogAddProduct = () => {
     name: "",
     description: "",
     price: "",
-    stock: 0,
+    stock: 1,
   });
   const handelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue({
@@ -47,10 +49,11 @@ const DialogAddProduct = () => {
   };
 
   const category = useSelector(
-    (state: RootState) => state.global.whyIsSelected,
+    (state: RootState) => state.global.whyIsSelected
   );
 
   const images = useSelector((state: RootState) => state.global.files);
+
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -63,23 +66,33 @@ const DialogAddProduct = () => {
           Accept: "application/json",
         },
       });
-          
-      console.log(res.data);
-    return res.data;
+
+      return res.data;
+    },
+    onMutate: () => {
+      loadingToast();
     },
 
     onSuccess: () => {
       console.log("done ✅");
+      successToast();
+      // dispatch(closeAddProduct());
+      setInputValue({
+        name: "",
+        description: "",
+        price: "",
+        stock: 1,
+      });
     },
 
-    onError: (err) => {
-      console.log("error ❌", err);
+    onError: () => {
+      errorToast();
     },
   });
 
     const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-    const formData = new FormData();
+      e.preventDefault();
+    const formData = new FormData(); 
     formData.append("name", inputValue.name);
     formData.append("description", inputValue.description);
     formData.append("price", inputValue.price);
@@ -88,7 +101,8 @@ const DialogAddProduct = () => {
     images.forEach((img: IUploadedFile) => {
       formData.append("images[]", img.file);
     });
-    mutation.mutate(formData);
+      mutation.mutate(formData);
+      dispatch(closeAddProduct());
   };
   return (
     <>
