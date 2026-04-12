@@ -7,6 +7,7 @@ interface GlobalState {
   isCartOpen: boolean;
   isAddProductOpen: boolean;
   isOpenDialogDelete: boolean;
+  productNameDelete: string;
   idDialogDelete: number | null;
   isEditProductOpen: boolean;
   currentProduct: InputValueEdit | null;
@@ -22,6 +23,7 @@ const initialState: GlobalState = {
   isEditProductOpen: false,
   isOpenDialogDelete: false,
   idDialogDelete: null,
+  productNameDelete: "",
   currentProduct: null,
   whyIsSelected: "",
   whyIsSelectedEdit: "",
@@ -105,6 +107,9 @@ const globalSlice = createSlice({
     closeDialogDelete: (state) => {
       state.idDialogDelete = null;
       state.isOpenDialogDelete = false;
+    },
+    productName: (state, action: PayloadAction<string>) => {
+      state.productNameDelete = action.payload;
     }
   },
 });
@@ -129,5 +134,6 @@ export const {
   clearEditImages,
   openDialogDelete,
   closeDialogDelete,
+  productName,
 } = globalSlice.actions;
 export default globalSlice.reducer;

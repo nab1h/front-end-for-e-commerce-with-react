@@ -9,7 +9,9 @@ import { useDispatch, useSelector } from "react-redux";
 const ConfirmDelete = () => {
   const API_URL = import.meta.env.VITE_SERVER_URL;
   const dispatch = useDispatch();
-
+  const nameProduct = useSelector(
+    (state: RootState) => state.global.productNameDelete,
+  );
 
   const isOpen = useSelector(
     (state: RootState) => state.global.isOpenDialogDelete,
@@ -35,7 +37,9 @@ const ConfirmDelete = () => {
 
     },
     onMutate: () => {},
-    onSuccess: () => {},
+    onSuccess: () => {
+      dispatch(closeDialogDelete());
+    },
     onError: () => {},
   });
   const handleDelete = () => {
@@ -63,8 +67,7 @@ const ConfirmDelete = () => {
             </Dialog.Header>
             <Dialog.Body>
               <p>
-                This action cannot be undone. This will permanently delete your
-                account and remove your data from our systems.
+                {`are you sure to delete ${nameProduct}`}
               </p>
             </Dialog.Body>
             <Dialog.Footer>
