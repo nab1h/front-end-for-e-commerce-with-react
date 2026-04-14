@@ -2,6 +2,8 @@ import Navbar from "@/components/Navbar";
 import { Outlet } from "react-router-dom";
 import { type FC } from "react";
 import CartDrawer from "@/components/CartDrawer";
+import Footer from "@/components/Footer";
+
 
 const AppLayout: FC = () => {
   return (
@@ -9,6 +11,7 @@ const AppLayout: FC = () => {
       <Navbar />
       <Outlet />
       <CartDrawer />
+      <Footer />
     </>
   );
 };

@@ -18,7 +18,14 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
+
+  currentUser: null | {
+    id: number;
+    name: string;
+    role: string;
+  };
 }
+
 const token = localStorage.getItem("token");
 const initialState: AuthState = {
   user: {
@@ -28,6 +35,7 @@ const initialState: AuthState = {
   isLoading: false,
   error: null,
   isAuthenticated: !!token,
+  currentUser: null,
 };
 
 // Async login action
@@ -49,6 +57,7 @@ export const registerUser = createAsyncThunk(
       password: userData.password,
       password_confirmation: userData.password_confirmation || userData.password,
     });
+
     return response.data;
   }
 );
@@ -73,6 +82,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.user = { email: "", password: "" };
       localStorage.removeItem("token");
+      localStorage.removeItem("user");
     },
 
     clearError: (state) => {
@@ -89,10 +99,12 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.isAuthenticated = true;
         state.error = null;
-
+        
+        const user = action.payload.user;
         const token = action.payload.token;
         localStorage.setItem("token", token);
-        
+        localStorage.setItem("user", JSON.stringify(user));
+        state.currentUser = user;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
  
 import {
   Box,
@@ -9,7 +10,6 @@ import {
   VStack,
   useBreakpointValue,
   Image,
-  Heading,
   Menu,
   Portal
 } from "@chakra-ui/react";
@@ -23,19 +23,17 @@ import { useDispatch } from "react-redux";
 import { logout } from "@/features/auth/authSlice";
 import { selectCart } from "@/features/cartSlice";
 import { toggleCart } from "@/features/globalSlice";
+import { useThemeColors } from "@/hooks/useThemeColors";
+import { navLinks } from "@/data";
 
 
 
 const Navbar = () => {
   const { colorMode, toggleColorMode } = useColorMode();
+  const isMobile = useBreakpointValue({ base: true, md: false });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const userImage = "https://api.dicebear.com/7.x/avataaars/svg?seed=user";
-
-  const isMobile = useBreakpointValue({ base: true, md: false });
-  const bgColor = useColorModeValue("white", "gray.800");
-  const textColor = useColorModeValue("gray.800", "white");
-  const hoverBg = useColorModeValue("gray.100", "gray.700");
-  const menuBg = useColorModeValue("white", "gray.900");
+  const colors = useThemeColors();
   const dispatch = useDispatch<AppDispatch>();
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated,
@@ -45,13 +43,15 @@ const Navbar = () => {
     dispatch(logout());
   }
 
+  const currentUser = JSON.parse(localStorage.getItem("user") || "null");
   const { cartProducts } = useSelector(selectCart);
+  
   return (
     <Box
       px={{ base: 4, md: 8 }}
       py={4}
       boxShadow="sm"
-      bg={bgColor}
+      bg={colors.pageBg}
       position="sticky"
       top="0"
       zIndex="1000"
@@ -59,67 +59,39 @@ const Navbar = () => {
       <Flex justify="space-between" align="center" maxW="1400px" mx="auto">
         {/* Logo - Left */}
         <RouterLink to="/">
-          <Heading
-            as="h1"
-            fontSize="2xl"
-            fontWeight="700"
-            color={textColor}
-            cursor="pointer"
-            _hover={{ color: "blue.500" }}
-            transition="color 0.2s"
-            fontFamily="'Poppins', sans-serif"
-          >
-            MyStore
-          </Heading>
+          <Image src="/logo.png" alt="Coffee Store Logo" h="40px" />
         </RouterLink>
 
         {/* Navigation Links - Center (Desktop) */}
         {!isMobile && (
           <HStack gap={2}>
-            <RouterLink to="/">
-              <Button
-                variant="ghost"
-                color={textColor}
-                _hover={{ bg: hoverBg }}
-                fontWeight="500"
-                fontFamily="'Poppins', sans-serif"
-              >
-                Home
-              </Button>
-            </RouterLink>
-            <RouterLink to="/products">
-              <Button
-                variant="ghost"
-                color={textColor}
-                _hover={{ bg: hoverBg }}
-                fontWeight="500"
-                fontFamily="'Poppins', sans-serif"
-              >
-                Products
-              </Button>
-            </RouterLink>
-            <RouterLink to="/about">
-              <Button
-                variant="ghost"
-                color={textColor}
-                _hover={{ bg: hoverBg }}
-                fontWeight="500"
-                fontFamily="'Poppins', sans-serif"
-              >
-                About
-              </Button>
-            </RouterLink>
-            <RouterLink to="/contact">
-              <Button
-                variant="ghost"
-                color={textColor}
-                _hover={{ bg: hoverBg }}
-                fontWeight="500"
-                fontFamily="'Poppins', sans-serif"
-              >
-                Contact
-              </Button>
-            </RouterLink>
+            {navLinks.map((link) => (
+              <RouterLink key={link.path} to={link.path}>
+                <Button
+                  variant="ghost"
+                  color={colors.textPrimary}
+                  _hover={{ bg: colors.accent }}
+                  fontWeight="500"
+                  fontFamily="'Poppins', sans-serif"
+                >
+                  {link.label}
+                </Button>
+              </RouterLink>
+            ))}
+
+            {currentUser?.role === "admin" && (
+              <RouterLink to="/dashboard">
+                <Button
+                  variant="ghost"
+                  color={colors.textPrimary}
+                  _hover={{ bg: colors.accent }}
+                  fontWeight="500"
+                  fontFamily="'Poppins', sans-serif"
+                >
+                  Dashboard
+                </Button>
+              </RouterLink>
+            )}
           </HStack>
         )}
 
@@ -130,44 +102,43 @@ const Navbar = () => {
             aria-label="Toggle dark mode"
             onClick={toggleColorMode}
             variant="ghost"
-            color={textColor}
-            _hover={{ bg: hoverBg }}
+            color={colors.textPrimary}
+            _hover={{ bg: colors.accent }}
             size="md"
           >
             {colorMode === "light" ? <FaMoon /> : <FaSun />}
           </IconButton>
 
           {/* Cart Button */}
-          
-            <IconButton
-              aria-label="Cart"
-              variant="ghost"
-              color={textColor}
-              _hover={{ bg: hoverBg }}
-              size="md"
-              position="relative"
-              onClick={() => dispatch(toggleCart())}
+
+          <IconButton
+            aria-label="Cart"
+            variant="ghost"
+            color={colors.textPrimary}
+            _hover={{ bg: colors.accent }}
+            size="md"
+            position="relative"
+            onClick={() => dispatch(toggleCart())}
+          >
+            <FaShoppingCart />
+            <Box
+              position="absolute"
+              top="0"
+              right="0"
+              bg="red.500"
+              color="white"
+              borderRadius="full"
+              fontSize="10px"
+              w="4"
+              h="4"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              fontWeight="600"
             >
-              <FaShoppingCart />
-              <Box
-                position="absolute"
-                top="0"
-                right="0"
-                bg="red.500"
-                color="white"
-                borderRadius="full"
-                fontSize="10px"
-                w="4"
-                h="4"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                fontWeight="600"
-              >
-                {cartProducts.length}
-              </Box>
-            </IconButton>
-          
+              {cartProducts.length}
+            </Box>
+          </IconButton>
 
           {/* User Button */}
           {isAuthenticated ? (
@@ -224,6 +195,7 @@ const Navbar = () => {
                 variant="solid"
                 colorScheme="blue"
                 fontWeight="600"
+                bg={colors.accent}
                 fontFamily="'Poppins', sans-serif"
               >
                 Login
@@ -237,8 +209,8 @@ const Navbar = () => {
               aria-label="Open menu"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               variant="ghost"
-              color={textColor}
-              _hover={{ bg: hoverBg }}
+              color={colors.textPrimary}
+              _hover={{ bg: colors.accent }}
               size="md"
             >
               {isMenuOpen ? <FaTimes /> : <FaBars />}
@@ -254,16 +226,15 @@ const Navbar = () => {
           top="full"
           left={0}
           right={0}
-          bg={menuBg}
+          bg={colors.drawerBg}
           boxShadow="xl"
           p={4}
           zIndex={999}
           borderWidth="1px"
-          // eslint-disable-next-line react-hooks/rules-of-hooks
           borderColor={useColorModeValue("gray.200", "gray.700")}
         >
           <Text
-            color={textColor}
+            color={colors.textPrimary}
             fontWeight="600"
             mb={3}
             fontFamily="'Poppins', sans-serif"
@@ -276,8 +247,8 @@ const Navbar = () => {
                 w="full"
                 variant="ghost"
                 justifyContent="flex-start"
-                color={textColor}
-                _hover={{ bg: hoverBg }}
+                color={colors.textPrimary}
+                _hover={{ bg: colors.accent }}
                 fontWeight="500"
                 fontFamily="'Poppins', sans-serif"
               >
@@ -289,8 +260,8 @@ const Navbar = () => {
                 w="full"
                 variant="ghost"
                 justifyContent="flex-start"
-                color={textColor}
-                _hover={{ bg: hoverBg }}
+                color={colors.textPrimary}
+                _hover={{ bg: colors.accent }}
                 fontWeight="500"
                 fontFamily="'Poppins', sans-serif"
               >
@@ -302,8 +273,8 @@ const Navbar = () => {
                 w="full"
                 variant="ghost"
                 justifyContent="flex-start"
-                color={textColor}
-                _hover={{ bg: hoverBg }}
+                color={colors.textPrimary}
+                _hover={{ bg: colors.accent }}
                 fontWeight="500"
                 fontFamily="'Poppins', sans-serif"
               >
@@ -315,8 +286,8 @@ const Navbar = () => {
                 w="full"
                 variant="ghost"
                 justifyContent="flex-start"
-                color={textColor}
-                _hover={{ bg: hoverBg }}
+                color={colors.textPrimary}
+                _hover={{ bg: colors.accent }}
                 fontWeight="500"
                 fontFamily="'Poppins', sans-serif"
               >
@@ -330,8 +301,8 @@ const Navbar = () => {
                     w="full"
                     variant="ghost"
                     justifyContent="flex-start"
-                    color={textColor}
-                    _hover={{ bg: hoverBg }}
+                    color={colors.textPrimary}
+                    _hover={{ bg: colors.accent }}
                     fontWeight="500"
                     fontFamily="'Poppins', sans-serif"
                   >
@@ -343,35 +314,22 @@ const Navbar = () => {
                     w="full"
                     variant="ghost"
                     justifyContent="flex-start"
-                    color={textColor}
-                    _hover={{ bg: hoverBg }}
+                    color={colors.textPrimary}
+                    _hover={{ bg: colors.accent }}
                     fontWeight="500"
                     fontFamily="'Poppins', sans-serif"
                   >
                     Cart
                   </Button>
                 </RouterLink>
-                <RouterLink to="/orders" onClick={() => setIsMenuOpen(false)}>
-                  <Button
-                    w="full"
-                    variant="ghost"
-                    justifyContent="flex-start"
-                    color={textColor}
-                    _hover={{ bg: hoverBg }}
-                    fontWeight="500"
-                    fontFamily="'Poppins', sans-serif"
-                  >
-                    My Orders
-                  </Button>
-                </RouterLink>
               </>
             ) : (
               <RouterLink to="/login" onClick={() => setIsMenuOpen(false)}>
                 <Button
-                  w="full"
                   variant="solid"
                   colorScheme="blue"
                   fontWeight="600"
+                  bg={colors.accent}
                   fontFamily="'Poppins', sans-serif"
                 >
                   Login

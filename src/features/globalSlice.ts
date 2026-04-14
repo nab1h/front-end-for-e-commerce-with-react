@@ -1,6 +1,6 @@
 
 import type { IUploadedFile } from "@/components/dashboard/UploadPhotoAdd";
-import type { IEditImage, InputValueEdit } from "@/interfaces/interfaces";
+import type { ICategory, IEditImage, InputValueEdit, IProduct } from "@/interfaces/interfaces";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 interface GlobalState {
@@ -15,6 +15,7 @@ interface GlobalState {
   whyIsSelectedEdit: string;
   files: IUploadedFile[];
   editImages: IEditImage[];
+  detailProduct: IProduct;
 }
 
 const initialState: GlobalState = {
@@ -29,8 +30,19 @@ const initialState: GlobalState = {
   whyIsSelectedEdit: "",
   files: [],
   editImages: [],
+  detailProduct: {
+    id: 0,
+    name: "",
+    description: "",
+    price: "",
+    stock: 0,
+    cat_id: 0,
+    created_at: "",
+    updated_at: "",
+    category: {} as ICategory,
+    images: [],
+  },
 };
-
 const globalSlice = createSlice({
   name: "global",
   initialState,
@@ -110,7 +122,11 @@ const globalSlice = createSlice({
     },
     productName: (state, action: PayloadAction<string>) => {
       state.productNameDelete = action.payload;
-    }
+    },
+    // -----------show product detail----------
+    showProduct: (state, action: PayloadAction<IProduct>) => {
+      state.detailProduct = action.payload;
+    },
   },
 });
 
@@ -135,5 +151,6 @@ export const {
   openDialogDelete,
   closeDialogDelete,
   productName,
+  showProduct,
 } = globalSlice.actions;
 export default globalSlice.reducer;

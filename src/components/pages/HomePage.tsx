@@ -1,7 +1,16 @@
+
+import Hero from "../Hero";
+import AboutPage from "./AboutPage";
+import ContactPage from "./ContactPage";
+import ProductsPage from "./ProductsPage";
+
 const HomePage = () => {
     return (
       <>
-        <h1>Home page</h1>
+        <Hero />
+        <AboutPage />
+        <ProductsPage />
+        <ContactPage />
       </>
     );
 
